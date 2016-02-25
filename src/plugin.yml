@@ -1,0 +1,70 @@
+name: ChunkUp
+main: com.migsi.chunkup.ChunkUp
+version: 1.3.0
+author: Migsi
+description: This plugin keeps selected chunks active.
+
+commands:
+  chunkup:
+    description: Type "/cu" to see a list of all commands.
+    aliases: [cu]
+    usage: |
+      /cu help - Shows this help
+      /cu info - Gives information about your chunk
+      /cu list - Gives you a list of all marked chunks
+      /cu mark [route] - Marks current chunk to stay loaded
+      /cu follow mark|unmark [route] - Follows you and marks/demarks all chunks you travel through
+      /cu escape - Stops the plugin from chasing you
+      /cu unmark - Unmarks the current chunk
+      /cu unmarkall [player] - Unmarks all chunks of the player using it or of the given player
+      /cu set|get ignoreInterval|refreshTime|altchunkloader|owners|info [value] - Changes/shows you plugin settings
+
+permissions:
+  chunkup.*:
+    description: Gives the permission to use all ChunkUp commands.
+    children:
+      chunkup.help: true
+      chunkup.info: true
+      chunkup.list: true
+      chunkup.mark: true
+      chunkup.follow: true
+      chunkup.escape: true
+      chunkup.unmark: true
+      chunkup.unmarkall: true
+      chunkup.set: true
+      chunkup.get: true
+  chunkup.help:
+    description: Allows you to use "/cu help"
+    default: true
+  chunkup.info:
+    description: Allows you to use "/cu info"
+    default: true
+  chunkup.list:
+    description: Allows you to use "/cu list"
+    default: true
+  chunkup.mark:
+    description: Allows you to use "/cu mark"
+    default: false
+  chunkup.follow:
+    description: Allows you to use "/cu follow"
+    default: false
+  chunkup.escape:
+    description: Allows you to use "/cu escape"
+    default: false
+  chunkup.unmark:
+    description: Allows you to use "/cu unmark"
+    default: false
+  chunkup.unmarkall:
+    description: Allows you to use "/cu unmarkall [player]"
+    default: false
+    children:
+      chunkup.unmarkall.own: true
+  chunkup.unmarkall.own:
+    description: Allows you to use "/cu unmarkall"
+    default: false
+  chunkup.set:
+    description: Allows you to use "/cu set"
+    default: false
+  chunkup.get:
+    description: Allows you to use "/cu get"
+    default: false
