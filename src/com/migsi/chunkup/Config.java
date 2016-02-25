@@ -14,8 +14,8 @@ public class Config {
 	private ChunkDataVector temp = null;
 
 	// Determines which permission system gets used
-	public static boolean Permissions = false;
-	public static boolean Op = true;
+	public static boolean Permissions = true;
+	public static boolean Op = false;
 	// Determines all configuration fields
 	private static final String[] ConfigFields = {"version", "use-alternative-chunkloader", "ignore-interval", "refresh-in-ticks",
 			"next-id", "next-route", "owners", "permissions", "op", "chunks" };

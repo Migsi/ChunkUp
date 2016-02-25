@@ -252,7 +252,6 @@ public class ChunkUp extends JavaPlugin {
 	 * @param sender
 	 */
 	public void unmark(CommandSender sender) {
-		// TODO überprüfen ob spieler alle entfernen darf?
 		if (loader.remove(new ChunkData(sender, true))) {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was unmarked" + ChatColor.RESET);
 		} else {
@@ -287,6 +286,7 @@ public class ChunkUp extends JavaPlugin {
 				}
 			}
 		} else {
+			// Running command from a console
 			if (args.length == 2 && loader.clear(args[1])) {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "Deleted chunks of player: " + ChatColor.RESET + args[1]);
 			} else {
