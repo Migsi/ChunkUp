@@ -1,107 +1,132 @@
 package com.migsi.chunkup;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.logging.Level;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Config {
-	// JSON converter
-	private Gson gson = null;
-	// ChunkUp instance
-	private ChunkUp chunkUp = null;
-	// Temporary ChunkDataVector
-	private ChunkDataVector temp = null;
 
-	// Determines which permission system gets used
+	// Determines which permission system is used
 	public static boolean Permissions = true;
 	public static boolean Op = false;
-	// Determines all configuration fields
-	private static final String[] ConfigFields = {"version", "use-alternative-chunkloader", "ignore-interval", "refresh-in-ticks",
-			"next-id", "next-route", "owners", "permissions", "op", "chunks" };
+	
+	// File configurations
+	private static final String CONFIGFILENAME = "config.yml";
+	private static final String CHUNKSFILENAME = "chunks.yml";
+	private static File ConfigFile = null;
+	private static File ChunksFile = null;
+	private static FileConfiguration ChunksFileConfig = null;
 
-	public Config(ChunkUp chunkUp) {
-		gson = new Gson();
-		this.chunkUp = chunkUp;
+	public Config() {
+		load();
 	}
 
-	public ChunkDataVector loadConfig() {
+	public void load() {
 		try {
-			ChunkUp.setUseAlternativeChunkLoader(chunkUp.getConfig().getBoolean(ConfigFields[1]));
-			ChunkUpPlayer.setIgnoreCount(chunkUp.getConfig().getInt(ConfigFields[2]));
-			ChunkLoader.setRefreshTime(chunkUp.getConfig().getInt(ConfigFields[3]));
-			ChunkData.setNextID(chunkUp.getConfig().getLong(ConfigFields[4]));
-			ChunkData.setNextRoute(chunkUp.getConfig().getLong(ConfigFields[5]));
-			ChunkDataVector.setUseOwners(chunkUp.getConfig().getBoolean(ConfigFields[6]));
-			Config.Permissions = chunkUp.getConfig().getBoolean(ConfigFields[7]);
-			Config.Op = chunkUp.getConfig().getBoolean(ConfigFields[8]);
-			temp = gson.fromJson(chunkUp.getConfig().getString(ConfigFields[ConfigFields.length - 1]),
-					ChunkDataVector.class);
-			chunkUp.getLogger().info("Configuration loaded successfully");
-		} catch (JsonSyntaxException e) {
-			e.printStackTrace();
-		}
-		if (!ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion().equals(chunkUp.getConfig().getString(ConfigFields[0]))) {
-			chunkUp.getLogger().info("but you are using an old version of the config. I'll create a new one for you!");
-			new File(chunkUp.getDataFolder(), "config.yml").delete();
-			readConfig();
-		}
-		return temp;
-	}
-
-	public ChunkDataVector readConfig() {
-		try {
-			if (!chunkUp.getDataFolder().exists()) {
-				chunkUp.getDataFolder().mkdirs();
+			if (!ChunkUp.instance.getDataFolder().exists()) {
+				ChunkUp.instance.getDataFolder().mkdirs();
 			}
-			File file = new File(chunkUp.getDataFolder(), "config.yml");
-			if (!file.exists()) {
-				chunkUp.getLogger().info("Config.yml not found, creating a new one...");
-				chunkUp.getConfig().options()
-						.header("#IF YOU DON'T KNOW WHAT YOU'RE DOING, DON'T EDIT THIS FILE BY HAND");
-				//chunkUp.getConfig().addDefault(ConfigFields[0], ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion());
-				chunkUp.getConfig().addDefault(ConfigFields[1], true);
-				chunkUp.getConfig().addDefault(ConfigFields[2], 10);
-				chunkUp.getConfig().addDefault(ConfigFields[3], 50);
-				chunkUp.getConfig().addDefault(ConfigFields[4], 0);
-				chunkUp.getConfig().addDefault(ConfigFields[5], 0);
-				chunkUp.getConfig().addDefault(ConfigFields[6], true);
-				chunkUp.getConfig().addDefault(ConfigFields[7], true);
-				chunkUp.getConfig().addDefault(ConfigFields[8], false);
-				chunkUp.getConfig().addDefault(ConfigFields[ConfigFields.length - 1], "'{\"chdvector\":[]}'");
-				chunkUp.getConfig().options().copyDefaults(true);
-				chunkUp.saveConfig();
+			
+			ConfigFile = new File(ChunkUp.instance.getDataFolder(), CONFIGFILENAME);
+			
+			if (!ConfigFile.exists()) {
+				ChunkUp.instance.getLogger().info("Config.yml not found, creating a new one...");
+
+				writeConfig();
+				
 			} else {
-				chunkUp.getLogger().info("Config.yml found, loading...");
+				ChunkUp.instance.getLogger().info("Config.yml found, loading...");
 				loadConfig();
 			}
+			
+			ChunksFile = new File(ChunkUp.instance.getDataFolder(), CHUNKSFILENAME);
+			ChunksFileConfig = YamlConfiguration.loadConfiguration(ChunksFile);
+			
+			if (!ChunksFile.exists()) {
+				ChunkUp.instance.getLogger().info("Chunks.yml not found, creating a new one...");
+
+				writeChunks();
+				
+			} else {
+				ChunkUp.instance.getLogger().info("Chunks.yml found, loading...");
+				loadChunks();
+			}
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return temp;
+	}
+	
+	public void loadConfig() {
+			
+			ChunkUp.setUseAlternativeChunkLoader(ChunkUp.instance.getConfig().getBoolean(ConfigEnum.USE_ALTERNATIVE_CHUNKLOADER.value()));
+			ChunkUpPlayer.setIgnoreCount(ChunkUp.instance.getConfig().getInt(ConfigEnum.IGNORE_INTERVAL.value()));
+			ChunkLoader.setRefreshTime(ChunkUp.instance.getConfig().getInt(ConfigEnum.REFRESH_IN_TICKS.value()));
+			ChunkData.setNextID(ChunkUp.instance.getConfig().getLong(ConfigEnum.NEXT_ID.value()));
+			ChunkData.setNextRoute(ChunkUp.instance.getConfig().getLong(ConfigEnum.NEXT_ROUTE.value()));
+			ChunkDataVector.setUseOwners(ChunkUp.instance.getConfig().getBoolean(ConfigEnum.OWNERS.value()));
+			Config.Permissions = ChunkUp.instance.getConfig().getBoolean(ConfigEnum.PERMISSIONS.value());
+			Config.Op = ChunkUp.instance.getConfig().getBoolean(ConfigEnum.OP.value());
+			
+			ChunkUp.instance.getLogger().info("Configuration loaded successfully");
+			
+		if (!ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion().equals(ChunkUp.instance.getConfig().getString(ConfigEnum.VERSION.value()))) {
+			
+			ChunkUp.instance.getLogger().info("but you are using an old version of the config. I'll create a new one for you!");
+			new File(ChunkUp.instance.getDataFolder(), CONFIGFILENAME).delete();
+			
+			load();
+		}
+	}
+	
+	public void loadChunks() {
+		for (String key : ChunksFileConfig.getKeys(false)) {
+			try {
+				ChunkDataVector.add(new ChunkData(ChunksFileConfig.getString(key).split(";")));
+			} catch (ArrayIndexOutOfBoundsException e) {
+				ChunkUp.instance.getLogger().log(Level.SEVERE, "Set invalid key: " + key);
+			} catch (NumberFormatException e) {
+				ChunkUp.instance.getLogger().log(Level.SEVERE, "Set invalid key: " + key);
+			} catch (NullPointerException e) {
+				ChunkUp.instance.getLogger().log(Level.SEVERE, "Invalid key: " + key + "\nThis could also be an internal error.");
+			}
+		}
+	}
+	
+	public void save() {
+		writeConfig();
+		writeChunks();
+		ChunkUp.instance.getLogger().info("Saved");
 	}
 
-	public void writeConfig(ChunkDataVector chdvector) {
-		chunkUp.getLogger().info("Saving config...");
-		chunkUp.getConfig().set(ConfigFields[0], ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion());
-		chunkUp.getConfig().set(ConfigFields[1], ChunkUp.isUseAlternativeChunkLoader());
-		chunkUp.getConfig().set(ConfigFields[2], ChunkUpPlayer.getIgnoreCount());
-		chunkUp.getConfig().set(ConfigFields[3], ChunkLoader.getRefreshTime());
-		chunkUp.getConfig().set(ConfigFields[4], ChunkData.getNextID());
-		chunkUp.getConfig().set(ConfigFields[5], ChunkData.getNextRoute());
-		chunkUp.getConfig().set(ConfigFields[6], ChunkDataVector.isUsingOwners());
-		chunkUp.getConfig().set(ConfigFields[7], Permissions);
-		chunkUp.getConfig().set(ConfigFields[8], Op);
-		chunkUp.getConfig().set(ConfigFields[ConfigFields.length - 1], gson.toJson(chdvector, ChunkDataVector.class));
-		chunkUp.saveConfig();
-		chunkUp.getLogger().info("Saved");
+	public void writeConfig() {
+		ChunkUp.instance.getLogger().info("Saving config...");
+		ChunkUp.instance.getConfig().set(ConfigEnum.VERSION.value(), ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion());
+		ChunkUp.instance.getConfig().set(ConfigEnum.USE_ALTERNATIVE_CHUNKLOADER.value(), ChunkUp.isUseAlternativeChunkLoader());
+		ChunkUp.instance.getConfig().set(ConfigEnum.IGNORE_INTERVAL.value(), ChunkUpPlayer.getIgnoreCount());
+		ChunkUp.instance.getConfig().set(ConfigEnum.REFRESH_IN_TICKS.value(), ChunkLoader.getRefreshTime());
+		ChunkUp.instance.getConfig().set(ConfigEnum.NEXT_ID.value(), ChunkData.getNextID());
+		ChunkUp.instance.getConfig().set(ConfigEnum.NEXT_ROUTE.value(), ChunkData.getNextRoute());
+		ChunkUp.instance.getConfig().set(ConfigEnum.OWNERS.value(), ChunkDataVector.isUsingOwners());
+		ChunkUp.instance.getConfig().set(ConfigEnum.PERMISSIONS.value(), Permissions);
+		ChunkUp.instance.getConfig().set(ConfigEnum.OP.value(), Op);
+		ChunkUp.instance.saveConfig();
 	}
+	
+	public void writeChunks() {
+		ChunkUp.instance.getLogger().info("Saving chunks...");
+		for (int index = 0; index < ChunkDataVector.getChunkDataVector().size(); index++) {
+			ChunksFileConfig.set(Integer.toString(index), ChunkDataVector.getChunkDataVector().get(index).toConfString());
+		}
 
-	public void resetTemp() {
-		temp = null;
-	}
-
-	public static String[] getConfigFields() {
-		return ConfigFields;
+		try {
+			ChunksFileConfig.save(ChunksFile);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

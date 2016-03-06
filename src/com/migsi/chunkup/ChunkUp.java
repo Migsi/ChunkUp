@@ -11,6 +11,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ChunkUp extends JavaPlugin {
+	
+	public static ChunkUp instance = null;
 
 	// Is verbose active
 	private static boolean verbose = false;
@@ -26,16 +28,20 @@ public class ChunkUp extends JavaPlugin {
 	public void onEnable() {
 		getLogger().info("Initializing ChunkUp...");
 		
+		instance = this;
+		
+		// Initializing ChunkDataVector
+		new ChunkDataVector();
 		// Setting up config config
-		config = new Config(this);
+		config = new Config();
 		// Setting up loader
-		loader = new ChunkLoader(config.readConfig());
-		config.resetTemp();
+		loader = new ChunkLoader();
 		if (useAlternativeChunkLoader) {
 			getServer().getPluginManager().registerEvents(loader, this);
 		}
+		
 		// Setting up MovementListener
-		movementListener = new MovementListener(this);
+		movementListener = new MovementListener();
 		getServer().getPluginManager().registerEvents(movementListener, this);
 
 		getLogger().info("ChunkUp was succesfully enabled");
@@ -145,7 +151,7 @@ public class ChunkUp extends JavaPlugin {
 		}
 		HandlerList.unregisterAll(movementListener);
 		HandlerList.unregisterAll(loader);
-		config.writeConfig(loader.getChunkDataVector());
+		config.save();
 	}
 
 	// Command-Routines
@@ -156,7 +162,7 @@ public class ChunkUp extends JavaPlugin {
 	 * @param sender
 	 */
 	public void info(CommandSender sender) {
-		ChunkData chdata = loader.getChunkDataVector().get(new ChunkData(((Player) sender).getLocation().getChunk()));
+		ChunkData chdata = ChunkDataVector.get(new ChunkData(((Player) sender).getLocation().getChunk()));
 		if (chdata != null) {
 			sender.sendMessage(chdata.toString());
 		} else {
@@ -176,7 +182,7 @@ public class ChunkUp extends JavaPlugin {
 	 * @param args
 	 */
 	public void mark(CommandSender sender, String[] args) {
-		if (loader.add(new ChunkData(sender, convertToInt(sender, args, 2)))) {
+		if (ChunkDataVector.add(new ChunkData(sender, convertToInt(sender, args, 2)))) {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was marked" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "This chunk was already marked" + ChatColor.RESET);
@@ -192,9 +198,9 @@ public class ChunkUp extends JavaPlugin {
 	 */
 	public boolean automark(ChunkUpPlayer player) {
 		if (player.isMarking()) {
-			return loader.add(new ChunkData(player.getPlayer(), player.getRoute()));
+			return ChunkDataVector.add(new ChunkData(player.getPlayer(), player.getRoute()));
 		}
-		return loader.remove(new ChunkData(player.getPlayer(), true));
+		return ChunkDataVector.remove(new ChunkData(player.getPlayer(), true));
 	}
 
 	/**
@@ -252,7 +258,7 @@ public class ChunkUp extends JavaPlugin {
 	 * @param sender
 	 */
 	public void unmark(CommandSender sender) {
-		if (loader.remove(new ChunkData(sender, true))) {
+		if (ChunkDataVector.remove(new ChunkData(sender, true))) {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was unmarked" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "This chunk is currently not marked" + ChatColor.RESET);
@@ -267,7 +273,7 @@ public class ChunkUp extends JavaPlugin {
 	public void unmarkall(CommandSender sender, String[] args) {
 		if (sender instanceof Player) {
 			if (args.length == 1) {
-				if (loader.clear(sender.getName())) {
+				if (ChunkDataVector.clear(sender.getName())) {
 					if (ChunkDataVector.isUsingOwners()) {
 						sender.sendMessage(ChatColor.DARK_PURPLE + "All your chunks have been unmarked" + ChatColor.RESET);
 					} else {
@@ -278,7 +284,7 @@ public class ChunkUp extends JavaPlugin {
 				}
 			} else if (args.length == 2
 					&& (sender.getName().equals(args[1]) || checkPermission(sender, Permissions.Unmarkall))) {
-				if (loader.clear(args[1])) {
+				if (ChunkDataVector.clear(args[1])) {
 					sender.sendMessage(
 							ChatColor.DARK_PURPLE + "Deleted chunks of player: " + ChatColor.RESET + args[1]);
 				} else {
@@ -287,7 +293,7 @@ public class ChunkUp extends JavaPlugin {
 			}
 		} else {
 			// Running command from a console
-			if (args.length == 2 && loader.clear(args[1])) {
+			if (args.length == 2 && ChunkDataVector.clear(args[1])) {
 				sender.sendMessage(ChatColor.DARK_PURPLE + "Deleted chunks of player: " + ChatColor.RESET + args[1]);
 			} else {
 				sender.sendMessage(ChatColor.DARK_RED + "You need to tell me a player!" + ChatColor.RESET);
@@ -301,7 +307,7 @@ public class ChunkUp extends JavaPlugin {
 	 * @param sender
 	 */
 	public void list(CommandSender sender) {
-		String list = loader.getChunkDataVector().list();
+		String list = ChunkDataVector.list();
 		if (list != null) {
 			sender.sendMessage(list);
 		} else {
@@ -406,8 +412,8 @@ public class ChunkUp extends JavaPlugin {
 				verbose(Level.CONFIG, "Toggled to use event based chunk loading");
 			} else {
 				HandlerList.unregisterAll(loader);
-				config.writeConfig(loader.getChunkDataVector());
-				loader = new ChunkLoader(config.loadConfig());
+				config.writeConfig();
+				loader = new ChunkLoader();
 				verbose(Level.CONFIG, "Toggled to use time based chunk loading");
 			}
 		}

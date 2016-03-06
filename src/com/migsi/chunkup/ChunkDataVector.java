@@ -2,36 +2,33 @@ package com.migsi.chunkup;
 
 import java.util.Vector;
 
+import org.bukkit.ChatColor;
+
 public class ChunkDataVector {
+
+	private static Vector<ChunkData> ChunkDataVector = null;
+	
 	private static boolean useOwners = true;
 
-	private Vector<ChunkData> chdvector = null;
-
 	public ChunkDataVector() {
-		chdvector = new Vector<ChunkData>();
+		if (ChunkDataVector == null) {
+			ChunkDataVector = new Vector<ChunkData>();
+		}
 	}
 
-	public void orderByWorld() {
-		// TODO
-	}
-
-	public void orderByRoute() {
-		// TODO
-	}
-
-	public boolean add(ChunkData chdata) {
+	public static boolean add(ChunkData chdata) {
 		if (!contains(chdata)) {
-			return chdvector.add(chdata);
+			return ChunkDataVector.add(chdata);
 		} else if (!get(chdata).isOwner(chdata.getMainOwner())) {
 			return get(chdata).addOwner(chdata.getMainOwner());
 		}
 		return false;
 	}
 
-	public boolean remove(ChunkData chdata) {
+	public static boolean remove(ChunkData chdata) {
 		if (get(chdata) != null) {
 			if (!useOwners || get(chdata).isOnlyOwner(chdata.getMainOwner())) {
-				return chdvector.remove(chdata);
+				return ChunkDataVector.remove(chdata);
 			} else {
 				return get(chdata).removeOwner(chdata.getMainOwner());
 			}
@@ -39,62 +36,50 @@ public class ChunkDataVector {
 		return false;
 	}
 
-	public boolean clear(String owner) {
+	public static boolean clear(String owner) {
 		boolean ret = false;
 		if (useOwners && !owner.toLowerCase().equals("all")) {
 			int i = 0;
-			while (i < chdvector.size()) {
-				if (chdvector.get(i).isOnlyOwner(owner)) {
-					chdvector.remove(i);
+			while (i < ChunkDataVector.size()) {
+				if (ChunkDataVector.get(i).isOnlyOwner(owner)) {
+					ChunkDataVector.remove(i);
 					ret = true;
 				} else {
-					if (chdvector.get(i).removeOwner(owner)) {
+					if (ChunkDataVector.get(i).removeOwner(owner)) {
 						ret = true;
 					}
 					i++;
 				}
 			}
 		} else {
-			chdvector.clear();
+			ChunkDataVector.clear();
 			ret = true;
 		}
 		return ret;
 	}
 
-	public ChunkData get(int index) {
-		return chdvector.get(index);
+	public static ChunkData get(int index) {
+		return ChunkDataVector.get(index);
 	}
 
-	public ChunkData get(ChunkData chdata) {
+	public static ChunkData get(ChunkData chdata) {
 		int index = index(chdata);
 		if (index > -1) {
-			return chdvector.get(index);
+			return ChunkDataVector.get(index);
 		}
 		return null;
 	}
 
-	public int size() {
-		return chdvector.size();
+	public static int size() {
+		return ChunkDataVector.size();
 	}
 
-	public boolean contains(ChunkData chdata) {
-		return chdvector.contains(chdata);
+	public static boolean contains(ChunkData chdata) {
+		return ChunkDataVector.contains(chdata);
 	}
 
-	public int index(ChunkData chdata) {
-		return chdvector.indexOf(chdata);
-	}
-
-	public String list() {
-		String ret = null;
-		if (chdvector.size() != 0) {
-			ret = new String();
-			for (int i = 0; i < chdvector.size(); i++) {
-				ret += chdvector.get(i).toString() + "\n";
-			}
-			ret.substring(1, ret.length() - 1);
-		}
-		return ret;
+	public static int index(ChunkData chdata) {
+		return ChunkDataVector.indexOf(chdata);
 	}
 
 	public static boolean isUsingOwners() {
@@ -103,5 +88,22 @@ public class ChunkDataVector {
 
 	public static void setUseOwners(boolean allowOwners) {
 		useOwners = allowOwners;
+	}
+
+	public static Vector<ChunkData> getChunkDataVector() {
+		return ChunkDataVector;
+	}
+
+	public static String list() {
+		String ret = null;
+		if (ChunkDataVector != null && !ChunkDataVector.isEmpty()) {
+			ret = new String();
+			for (int i = 0; i < ChunkDataVector.size(); i++) {
+				ret += ChatColor.DARK_PURPLE + "-------------------------\n" + ChatColor.RESET + ChunkDataVector.get(i).toString() + "\n";
+			}
+			//ret.substring(1, ret.length() - 1);
+			ret += ChatColor.DARK_PURPLE + "-------------------------\n" + ChatColor.RESET;
+		}
+		return ret;
 	}
 }

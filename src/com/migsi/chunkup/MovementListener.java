@@ -9,11 +9,9 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 public class MovementListener implements Listener {
 
-	private ChunkUp chunkUp = null;
 	private Vector<ChunkUpPlayer> following = null;
 
-	public MovementListener(ChunkUp chunkUp) {
-		this.chunkUp = chunkUp;
+	public MovementListener() {
 		following = new Vector<ChunkUpPlayer>();
 	}
 
@@ -66,7 +64,7 @@ public class MovementListener implements Listener {
 		if (!following.isEmpty()) {
 			ChunkUpPlayer cuplayer = get(event.getPlayer());
 			if (cuplayer != null && !cuplayer.Ignore()) {
-				if (chunkUp.automark(cuplayer)) {
+				if (ChunkUp.instance.automark(cuplayer)) {
 					cuplayer.incrementChunkCount();
 				}
 			}
