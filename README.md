@@ -1,14 +1,16 @@
 #ChunkUp
 
-This plugin allows you to select chunks and keep them loaded, also when no player is near. This can be useful for e.g. large redstone circuits, minecart transportation systems or commandblocks.
+#Overview
 
-Keep in mind, that this plugin **might impact** on your **server performance**, depending on how many chunks you want to stay loaded.
+This plugin allows you to select chunks and keep them loaded, also when no player is near. This can be useful for e.g. large redstone circuits, minecart transportation systems or commandblocks. *Yay* :D
+
+#That means exactly?
+
+There is still more! If you have a loooong railway, you could immagine how long it would take to mark every single chunk on the way by hand, wouldn't you? That's an absolutely no-go. And thats why there is a command to follow you while travelling around! So you could sit in your minecart, go all the way in minutes and relax. :) But there's not just the possibility to keep those marked chunks loaded. You will also own them, which means your chunks belong to you and nobody can unmark them (unless they've got the right permissions... :/). And when somebody else tries to own you chunk, don't be afraid. They will co-own this chunk, to guarantee it will be kept loaded. :)
 
 For downloading a compiled version, see [here](http://dev.bukkit.org/bukkit-plugins/chunkup/).
 
-#Commands and Permission Nodes
-
-**There are the following commands:**
+#Commands
 
 **/chunkup help** - Gives a short overview to the available commands
 
@@ -42,9 +44,7 @@ The value **"route"** is used to group greater areas of chunks together. Actuall
 
 **"owners"** is a setting to determine if the owner system is used or not. If it is enabled, only the player who marked a chunk or everyone with the "chunkup.unmarkall" permission can unmark it. If it is disabled, marked chunks will still have their owners, but everybody with the "chunkup.unmarkall.own" permission can remove all chunks.
 
----
-
-**The plugin has following permission nodes:**
+#Permission nodes
 
 **chunkup.***
 
@@ -75,6 +75,8 @@ The value **"route"** is used to group greater areas of chunks together. Actuall
 The plugin was testet with PaperSpigot and should work with Bukkit too. **It doesn't work with Spigot**, because Spigot blocks any attempt to load chunks out of range from players.
 
 #Other
+
+Keep in mind, that this plugin **might impact** on your **server performance**, depending on how many chunks you want to stay loaded. :/
 
 Any **suggestions and feedback** from the community are **welcome**! And one last thing: I'm a native German, so I apologize for my speaking/spelling errors.
 
