@@ -1,4 +1,4 @@
-package com.migsi.chunkup;
+package com.migsi.chunkup.data;
 
 import org.bukkit.entity.Player;
 
@@ -7,6 +7,7 @@ public class ChunkUpPlayer {
 	private static int IgnoreCount = 10;
 
 	private Player player = null;
+	private String description = null;
 	private long route = -1;
 	private boolean mark = false;
 	private int chunkcount = 0;
@@ -14,17 +15,30 @@ public class ChunkUpPlayer {
 
 	public ChunkUpPlayer(Player player, boolean mark) {
 		this.player = player;
+		this.route = ChunkData.getNextRoute();
 		this.mark = mark;
 	}
 
-	public ChunkUpPlayer(Player player, long route, boolean mark) {
+	public ChunkUpPlayer(Player player, String description, boolean mark) {
 		this.player = player;
-		this.route = route;
+		if (description != null) {
+			this.description = description;
+		} else {
+			this.route = ChunkData.getNextRoute();
+		}
 		this.mark = mark;
 	}
 
 	public Player getPlayer() {
 		return player;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public long getRoute() {

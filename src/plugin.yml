@@ -1,6 +1,6 @@
 name: ChunkUp
 main: com.migsi.chunkup.ChunkUp
-version: 1.3.1
+version: 1.4.0
 author: Migsi
 description: This plugin keeps selected chunks active.
 
@@ -12,11 +12,11 @@ commands:
       /cu help - Shows this help
       /cu info - Gives information about your chunk
       /cu list - Gives you a list of all marked chunks
-      /cu mark [route] - Marks current chunk to stay loaded
-      /cu follow mark|unmark [route] - Follows you and marks/unmarks all chunks you travel through
+      /cu mark [description] - Marks current chunk to stay loaded with optional description
+      /cu follow mark|unmark [description] - Follows you and marks/unmarks all chunks you travel through
       /cu escape - Stops the plugin from chasing you
       /cu unmark - Unmarks the current chunk
-      /cu unmarkall [player] - Unmarks all chunks of the player using it or of the given player
+      /cu unmarkall [player|all] - Unmarks all chunks of the player using it or of the given player
       /cu set|get ignoreInterval|refreshTime|altchunkloader|owners|info [value] - Changes/shows you plugin settings
 
 permissions:

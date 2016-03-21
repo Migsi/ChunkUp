@@ -1,4 +1,4 @@
-package com.migsi.chunkup;
+package com.migsi.chunkup.listeners;
 
 import java.util.Vector;
 
@@ -6,6 +6,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+
+import com.migsi.chunkup.ChunkUp;
+import com.migsi.chunkup.data.ChunkData;
+import com.migsi.chunkup.data.ChunkDataVector;
+import com.migsi.chunkup.data.ChunkUpPlayer;
 
 public class MovementListener implements Listener {
 
@@ -15,15 +20,24 @@ public class MovementListener implements Listener {
 		following = new Vector<ChunkUpPlayer>();
 	}
 
-	public boolean add(Player player, boolean mark, int route) {
-		if (!contains(player)) {
-			if (mark) {
-				if (route > -1) {
-					return following.add(new ChunkUpPlayer(player, route, mark));
+	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent event) {
+		if (!following.isEmpty()) {
+			ChunkUpPlayer cuplayer = get(event.getPlayer());
+			if (cuplayer != null && !cuplayer.Ignore()) {
+				if (automark(cuplayer)) {
+					cuplayer.incrementChunkCount();
 				}
-				return following.add(new ChunkUpPlayer(player, ChunkData.getNextRouteInc(), mark));
 			}
-			return following.add(new ChunkUpPlayer(player, mark));
+		}
+	}
+
+	public boolean add(Player player, boolean mark, String description) {
+		if (!contains(player)) {
+			// if (description != null) {
+			return following.add(new ChunkUpPlayer(player, description, mark));
+			// }
+			// return following.add(new ChunkUpPlayer(player, mark));
 		}
 		return false;
 	}
@@ -59,15 +73,10 @@ public class MovementListener implements Listener {
 		return false;
 	}
 
-	@EventHandler
-	public void onPlayerMove(PlayerMoveEvent event) {
-		if (!following.isEmpty()) {
-			ChunkUpPlayer cuplayer = get(event.getPlayer());
-			if (cuplayer != null && !cuplayer.Ignore()) {
-				if (ChunkUp.instance.automark(cuplayer)) {
-					cuplayer.incrementChunkCount();
-				}
-			}
+	private boolean automark(ChunkUpPlayer player) {
+		if (player.isMarking()) {
+			return ChunkDataVector.add(new ChunkData(player.getPlayer(), player.getDescription(), player.getRoute()));
 		}
+		return ChunkDataVector.remove(new ChunkData(player.getPlayer(), true));
 	}
 }

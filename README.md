@@ -18,9 +18,9 @@ For downloading a compiled version, see [here](http://dev.bukkit.org/bukkit-plug
 
 **/chunkup list** - Shows you a list of all marked chunks
 
-**/chunkup mark [route]** - Marks the chunk you're in
+**/chunkup mark [description]** - Marks the chunk you're in and adds an optional description
 
-**/chunkup follow mark|unmark [route]** - Follows the player and marks all chunks he travels through ("route" works only with "mark")
+**/chunkup follow mark|unmark [description]** - Follows the player and marks all chunks he travels through
 
 **/chunkup escape** - Stops chasing the player
 
@@ -34,7 +34,7 @@ For downloading a compiled version, see [here](http://dev.bukkit.org/bukkit-plug
 
 ---
 
-The value **"route"** is used to group greater areas of chunks together. Actually the plugin just gives every marked chunk a route, but does nothing more with it. In a future release I'll maybe add some group functions, that make management easier.
+The **"description"** argument is optional and gets used to group greater areas of chunks together. Actually the plugin just gives every marked chunk a description, but does nothing more with it. In a future release I'll maybe add some group functions, that make management easier.
 
 **"ignoreInterval"** is used to skip some PlayerMovementEvents, which are used to follow the player. This makes the processing of chunks faster, while the player is chased. It's standart value is 10, which should be enough to speed the plugin up a little, while maintaining full functionality. Greater values can speed up the plugin, but you risk to miss some chunks, if you travel through them fast.
 

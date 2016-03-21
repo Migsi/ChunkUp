@@ -1,4 +1,4 @@
-package com.migsi.chunkup;
+package com.migsi.chunkup.config;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,6 +6,12 @@ import java.util.logging.Level;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+
+import com.migsi.chunkup.ChunkUp;
+import com.migsi.chunkup.data.ChunkData;
+import com.migsi.chunkup.data.ChunkDataVector;
+import com.migsi.chunkup.data.ChunkUpPlayer;
+import com.migsi.chunkup.listeners.ChunkLoader;
 
 public class Config {
 
@@ -62,21 +68,21 @@ public class Config {
 	
 	public void loadConfig() {
 			
-			ChunkUp.setUseAlternativeChunkLoader(ChunkUp.instance.getConfig().getBoolean(ConfigEnum.USE_ALTERNATIVE_CHUNKLOADER.value()));
-			ChunkUpPlayer.setIgnoreCount(ChunkUp.instance.getConfig().getInt(ConfigEnum.IGNORE_INTERVAL.value()));
-			ChunkLoader.setRefreshTime(ChunkUp.instance.getConfig().getInt(ConfigEnum.REFRESH_IN_TICKS.value()));
-			ChunkData.setNextID(ChunkUp.instance.getConfig().getLong(ConfigEnum.NEXT_ID.value()));
-			ChunkData.setNextRoute(ChunkUp.instance.getConfig().getLong(ConfigEnum.NEXT_ROUTE.value()));
-			ChunkDataVector.setUseOwners(ChunkUp.instance.getConfig().getBoolean(ConfigEnum.OWNERS.value()));
-			Config.Permissions = ChunkUp.instance.getConfig().getBoolean(ConfigEnum.PERMISSIONS.value());
-			Config.Op = ChunkUp.instance.getConfig().getBoolean(ConfigEnum.OP.value());
+			ChunkUp.setUseAlternativeChunkLoader(ChunkUp.instance.getConfig().getBoolean(ConfigSection.USE_ALTERNATIVE_CHUNKLOADER));
+			ChunkUpPlayer.setIgnoreCount(ChunkUp.instance.getConfig().getInt(ConfigSection.IGNORE_INTERVAL));
+			ChunkLoader.setRefreshTime(ChunkUp.instance.getConfig().getInt(ConfigSection.REFRESH_IN_TICKS));
+			ChunkData.setNextID(ChunkUp.instance.getConfig().getLong(ConfigSection.NEXT_ID));
+			ChunkData.setNextRoute(ChunkUp.instance.getConfig().getLong(ConfigSection.NEXT_ROUTE));
+			ChunkDataVector.setUseOwners(ChunkUp.instance.getConfig().getBoolean(ConfigSection.OWNERS));
+			Config.Permissions = ChunkUp.instance.getConfig().getBoolean(ConfigSection.PERMISSIONS);
+			Config.Op = ChunkUp.instance.getConfig().getBoolean(ConfigSection.OP);
 			
 			ChunkUp.instance.getLogger().info("Configuration loaded successfully");
 			
-		if (!ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion().equals(ChunkUp.instance.getConfig().getString(ConfigEnum.VERSION.value()))) {
+		if (!ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion().equals(ChunkUp.instance.getConfig().getString(ConfigSection.VERSION))) {
 			
 			ChunkUp.instance.getLogger().info("but you are using an old version of the config. I'll create a new one for you!");
-			new File(ChunkUp.instance.getDataFolder(), CONFIGFILENAME).delete();
+			ConfigFile.delete();
 			
 			load();
 		}
@@ -87,11 +93,11 @@ public class Config {
 			try {
 				ChunkDataVector.add(new ChunkData(ChunksFileConfig.getString(key).split(";")));
 			} catch (ArrayIndexOutOfBoundsException e) {
-				ChunkUp.instance.getLogger().log(Level.SEVERE, "Set invalid key: " + key);
+				ChunkUp.instance.getLogger().log(Level.SEVERE, "Found invalid key: " + key);
 			} catch (NumberFormatException e) {
-				ChunkUp.instance.getLogger().log(Level.SEVERE, "Set invalid key: " + key);
+				ChunkUp.instance.getLogger().log(Level.SEVERE, "Found invalid key: " + key);
 			} catch (NullPointerException e) {
-				ChunkUp.instance.getLogger().log(Level.SEVERE, "Invalid key: " + key + "\nThis could also be an internal error.");
+				ChunkUp.instance.getLogger().log(Level.SEVERE, "Found invalid key: " + key + "\nThis could also be an internal error.");
 			}
 		}
 	}
@@ -104,20 +110,23 @@ public class Config {
 
 	public void writeConfig() {
 		ChunkUp.instance.getLogger().info("Saving config...");
-		ChunkUp.instance.getConfig().set(ConfigEnum.VERSION.value(), ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion());
-		ChunkUp.instance.getConfig().set(ConfigEnum.USE_ALTERNATIVE_CHUNKLOADER.value(), ChunkUp.isUseAlternativeChunkLoader());
-		ChunkUp.instance.getConfig().set(ConfigEnum.IGNORE_INTERVAL.value(), ChunkUpPlayer.getIgnoreCount());
-		ChunkUp.instance.getConfig().set(ConfigEnum.REFRESH_IN_TICKS.value(), ChunkLoader.getRefreshTime());
-		ChunkUp.instance.getConfig().set(ConfigEnum.NEXT_ID.value(), ChunkData.getNextID());
-		ChunkUp.instance.getConfig().set(ConfigEnum.NEXT_ROUTE.value(), ChunkData.getNextRoute());
-		ChunkUp.instance.getConfig().set(ConfigEnum.OWNERS.value(), ChunkDataVector.isUsingOwners());
-		ChunkUp.instance.getConfig().set(ConfigEnum.PERMISSIONS.value(), Permissions);
-		ChunkUp.instance.getConfig().set(ConfigEnum.OP.value(), Op);
+		ChunkUp.instance.getConfig().set(ConfigSection.VERSION, ChunkUp.getPlugin(ChunkUp.class).getDescription().getVersion());
+		ChunkUp.instance.getConfig().set(ConfigSection.USE_ALTERNATIVE_CHUNKLOADER, ChunkUp.isUseAlternativeChunkLoader());
+		ChunkUp.instance.getConfig().set(ConfigSection.IGNORE_INTERVAL, ChunkUpPlayer.getIgnoreCount());
+		ChunkUp.instance.getConfig().set(ConfigSection.REFRESH_IN_TICKS, ChunkLoader.getRefreshTime());
+		ChunkUp.instance.getConfig().set(ConfigSection.NEXT_ID, ChunkData.getNextID());
+		ChunkUp.instance.getConfig().set(ConfigSection.NEXT_ROUTE, ChunkData.getNextRouteNoInc());
+		ChunkUp.instance.getConfig().set(ConfigSection.OWNERS, ChunkDataVector.isUsingOwners());
+		ChunkUp.instance.getConfig().set(ConfigSection.PERMISSIONS, Permissions);
+		ChunkUp.instance.getConfig().set(ConfigSection.OP, Op);
 		ChunkUp.instance.saveConfig();
 	}
 	
 	public void writeChunks() {
 		ChunkUp.instance.getLogger().info("Saving chunks...");
+		
+		ChunksFileConfig = new YamlConfiguration();
+		
 		for (int index = 0; index < ChunkDataVector.getChunkDataVector().size(); index++) {
 			ChunksFileConfig.set(Integer.toString(index), ChunkDataVector.getChunkDataVector().get(index).toConfString());
 		}

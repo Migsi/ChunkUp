@@ -1,4 +1,4 @@
-package com.migsi.chunkup;
+package com.migsi.chunkup.data;
 
 import java.util.Vector;
 
@@ -13,7 +13,8 @@ public class ChunkData {
 	private static long NextID = 0;
 	private static long NextRoute = 0;
 	private final long ID;
-	private long route;
+	// private long route;
+	private String description = null;
 	private Vector<String> owners = null;
 	private String world = null;
 	private int x, z;
@@ -28,7 +29,7 @@ public class ChunkData {
 	public ChunkData(CommandSender sender, boolean remove) {
 		if (!remove) {
 			ID = NextID;
-			route = NextRoute;
+			description = new String("Route " + Long.toString(NextRoute));
 			NextID++;
 			NextRoute++;
 		} else {
@@ -44,14 +45,19 @@ public class ChunkData {
 		z = loc.getChunk().getZ();
 	}
 
-	public ChunkData(CommandSender sender, long route) {
+	public ChunkData(CommandSender sender, String description, long route) {
 		ID = NextID;
 		NextID++;
-		if (route > -1) {
-			this.route = route;
+		if (description != null) {
+			description = description.replace(';', ':');
+			this.description = description;
 		} else {
-			this.route = NextRoute;
-			NextRoute++;
+			if (route > -1) {
+				this.description = new String("Route " + route);
+			} else {
+				this.description = new String("Route " + Long.toString(NextRoute));
+				NextRoute++;
+			}
 		}
 		owners = new Vector<String>();
 		owners.add(sender.getName());
@@ -64,8 +70,9 @@ public class ChunkData {
 
 	public ChunkData(String[] data) throws NumberFormatException, ArrayIndexOutOfBoundsException, NullPointerException {
 		ID = Integer.parseInt(data[0]);
-		route = Integer.parseInt(data[1]);
-		
+		description = data[1];
+		// route = Integer.parseInt(data[1]);
+
 		owners = new Vector<String>();
 		if (data[2].indexOf(',') > -1) {
 			String[] owners = data[2].split(",");
@@ -75,7 +82,7 @@ public class ChunkData {
 		} else {
 			addOwner(data[2]);
 		}
-		
+
 		world = data[3];
 		x = Integer.parseInt(data[4]);
 		z = Integer.parseInt(data[5]);
@@ -93,11 +100,11 @@ public class ChunkData {
 		return ID;
 	}
 
-	public static long getNextRoute() {
+	public static long getNextRouteNoInc() {
 		return NextRoute;
 	}
 
-	public static long getNextRouteInc() {
+	public static long getNextRoute() {
 		long ret = NextRoute;
 		NextRoute++;
 		return ret;
@@ -139,12 +146,18 @@ public class ChunkData {
 		return (owners.size() == 1 && isOwner(owner));
 	}
 
-	public long getRoute() {
-		return route;
+	/*
+	 * public long getRoute() { return route; }
+	 * 
+	 * public void setRoute(long route) { this.route = route; }
+	 */
+
+	public String getDescription() {
+		return description;
 	}
 
-	public void setRoute(long route) {
-		this.route = route;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public String getWorld() {
@@ -186,7 +199,7 @@ public class ChunkData {
 		} else {
 			owner = "";
 		}
-		return ID + ";" + route + ";" + owner + ";" + world + ";" + x + ";" + z;
+		return ID + ";" + description + ";" + owner + ";" + world + ";" + x + ";" + z;
 	}
 
 	public String toString() {
@@ -199,13 +212,13 @@ public class ChunkData {
 				}
 			}
 		} else {
-			owner = "Nobody";
+			owner = "Nobody?";
 		}
 
 		return ChatColor.BOLD + "Owner: " + ChatColor.RESET + ChatColor.GRAY + owner + ChatColor.RESET + ChatColor.BOLD
-				+ " Route: " + ChatColor.RESET + ChatColor.GRAY + route + ChatColor.RESET + ChatColor.BOLD + "\nWorld: "
-				+ ChatColor.RESET + ChatColor.GRAY + world + ChatColor.RESET + ChatColor.BOLD + " X: " + ChatColor.RESET
-				+ ChatColor.GRAY + x + ChatColor.RESET + ChatColor.BOLD + " Z: " + ChatColor.RESET + ChatColor.GRAY + z
-				+ ChatColor.RESET;
+				+ "\nDescription: " + ChatColor.RESET + ChatColor.GRAY + description + ChatColor.RESET + ChatColor.BOLD
+				+ "\nWorld: " + ChatColor.RESET + ChatColor.GRAY + world + ChatColor.RESET + ChatColor.BOLD + " X: "
+				+ ChatColor.RESET + ChatColor.GRAY + x + ChatColor.RESET + ChatColor.BOLD + " Z: " + ChatColor.RESET
+				+ ChatColor.GRAY + z + ChatColor.RESET;
 	}
 }

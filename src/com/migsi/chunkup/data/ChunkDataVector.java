@@ -1,4 +1,4 @@
-package com.migsi.chunkup;
+package com.migsi.chunkup.data;
 
 import java.util.Vector;
 
@@ -7,7 +7,7 @@ import org.bukkit.ChatColor;
 public class ChunkDataVector {
 
 	private static Vector<ChunkData> ChunkDataVector = null;
-	
+
 	private static boolean useOwners = true;
 
 	public ChunkDataVector() {
@@ -98,11 +98,13 @@ public class ChunkDataVector {
 		String ret = null;
 		if (ChunkDataVector != null && !ChunkDataVector.isEmpty()) {
 			ret = new String();
-			for (int i = 0; i < ChunkDataVector.size(); i++) {
-				ret += ChatColor.DARK_PURPLE + "-------------------------\n" + ChatColor.RESET + ChunkDataVector.get(i).toString() + "\n";
+			int i;
+			for (i = 0; i < ChunkDataVector.size(); i++) {
+				ret += ChatColor.GREEN + "----------------------------\n" + ChatColor.RESET
+						+ ChunkDataVector.get(i).toString() + "\n";
 			}
-			//ret.substring(1, ret.length() - 1);
-			ret += ChatColor.DARK_PURPLE + "-------------------------\n" + ChatColor.RESET;
+			ret += ChatColor.GREEN + "----------------------------\n" + ChatColor.RESET + ChatColor.BOLD + "Total of "
+					+ ChatColor.RESET + ChatColor.GRAY + i + ChatColor.RESET + ChatColor.BOLD + " chunks marked." + ChatColor.RESET;
 		}
 		return ret;
 	}

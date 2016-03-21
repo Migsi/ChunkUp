@@ -10,6 +10,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.migsi.chunkup.config.Config;
+import com.migsi.chunkup.data.ChunkData;
+import com.migsi.chunkup.data.ChunkDataVector;
+import com.migsi.chunkup.data.ChunkUpPlayer;
+import com.migsi.chunkup.listeners.ChunkLoader;
+import com.migsi.chunkup.listeners.MovementListener;
+import com.migsi.chunkup.permissions.Permissions;
+
 public class ChunkUp extends JavaPlugin {
 	
 	public static ChunkUp instance = null;
@@ -58,50 +66,50 @@ public class ChunkUp extends JavaPlugin {
 					// Check arguments
 					switch (args[0].toLowerCase()) {
 					case "help":
-						ret = !checkPermission(sender, Permissions.Help);
+						ret = !checkPermission(sender, Permissions.HELP);
 						break;
 					case "info":
-						if (checkPermission(sender, Permissions.Info)) {
+						if (checkPermission(sender, Permissions.INFO)) {
 							info(sender);
 						}
 						break;
 					case "mark":
-						if (checkPermission(sender, Permissions.Mark)) {
+						if (checkPermission(sender, Permissions.MARK)) {
 							mark(sender, args);
 						}
 						break;
 					case "follow":
-						if (checkPermission(sender, Permissions.Follow)) {
+						if (checkPermission(sender, Permissions.FOLLOW)) {
 							followMark(sender, args);
 						}
 						break;
 					case "escape":
-						if (checkPermission(sender, Permissions.Escape)) {
+						if (checkPermission(sender, Permissions.ESCAPE)) {
 							escape(sender);
 						}
 						break;
 					case "unmark":
-						if (checkPermission(sender, Permissions.Unmark)) {
+						if (checkPermission(sender, Permissions.UNMARK)) {
 							unmark(sender);
 						}
 						break;
 					case "unmarkall":
-						if (checkPermission(sender, Permissions.Unmarkall_Own)) {
+						if (checkPermission(sender, Permissions.UNMARKALL_OWN)) {
 							unmarkall(sender, args);
 						}
 						break;
 					case "list":
-						if (checkPermission(sender, Permissions.List)) {
+						if (checkPermission(sender, Permissions.LIST)) {
 							list(sender);
 						}
 						break;
 					case "set":
-						if (checkPermission(sender, Permissions.Set)) {
+						if (checkPermission(sender, Permissions.SET)) {
 							changeConfig(sender, args);
 						}
 						break;
 					case "get":
-						if (checkPermission(sender, Permissions.Get)) {
+						if (checkPermission(sender, Permissions.GET)) {
 							changeConfig(sender, args);
 						}
 						break;
@@ -128,10 +136,17 @@ public class ChunkUp extends JavaPlugin {
 					case "get":
 						changeConfig(sender, args);
 						break;
-					default:
+					case "info":
+					case "mark":
+					case "follow":
+					case "escape":
+					case "unmark":
 						sender.sendMessage(ChatColor.DARK_RED
-								+ "Sorry, I think this command doesn't exist or you can't run it from a console!"
+								+ "Sorry, you can't run this command from a console!"
 								+ ChatColor.RESET);
+						break;
+					default:
+						sender.sendMessage(ChatColor.DARK_RED + "Sorry, I don't know that command!" + ChatColor.RESET);
 						ret = false;
 					}
 				}
@@ -182,25 +197,11 @@ public class ChunkUp extends JavaPlugin {
 	 * @param args
 	 */
 	public void mark(CommandSender sender, String[] args) {
-		if (ChunkDataVector.add(new ChunkData(sender, convertToInt(sender, args, 2)))) {
+		if (ChunkDataVector.add(new ChunkData(sender, convertToString(sender, args, 1), -1))) {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was marked" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "This chunk was already marked" + ChatColor.RESET);
 		}
-	}
-
-	/**
-	 * Marks automatically every chunk the player travels into. This Method is
-	 * only used by Class MovementListener (PlayerMoveEvent Handler)
-	 * 
-	 * @param player
-	 * @return true if action performed correctly
-	 */
-	public boolean automark(ChunkUpPlayer player) {
-		if (player.isMarking()) {
-			return ChunkDataVector.add(new ChunkData(player.getPlayer(), player.getRoute()));
-		}
-		return ChunkDataVector.remove(new ChunkData(player.getPlayer(), true));
 	}
 
 	/**
@@ -211,17 +212,17 @@ public class ChunkUp extends JavaPlugin {
 	 */
 	public void followMark(CommandSender sender, String[] args) {
 		if (args.length >= 2) {
-			int route = convertToInt(sender, args, 3);
+			//int route = convertToInt(sender, args, 3);
 			switch (args[1].toLowerCase()) {
 			case "mark":
-				if (movementListener.add((Player) sender, true, route)) {
+				if (movementListener.add((Player) sender, true, convertToString(sender, args, 2))) {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm following you now" + ChatColor.RESET);
 				} else {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm already following you!" + ChatColor.RESET);
 				}
 				break;
 			case "unmark":
-				if (movementListener.add((Player) sender, false, route)) {
+				if (movementListener.add((Player) sender, false, convertToString(sender, args, 2))) {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm following you now" + ChatColor.RESET);
 				} else {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm already following you!" + ChatColor.RESET);
@@ -283,10 +284,10 @@ public class ChunkUp extends JavaPlugin {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "You had no chunks marked!" + ChatColor.RESET);
 				}
 			} else if (args.length == 2
-					&& (sender.getName().equals(args[1]) || checkPermission(sender, Permissions.Unmarkall))) {
+					&& (sender.getName().equals(args[1]) || checkPermission(sender, Permissions.UNMARKALL))) {
 				if (ChunkDataVector.clear(args[1])) {
 					sender.sendMessage(
-							ChatColor.DARK_PURPLE + "Deleted chunks of player: " + ChatColor.RESET + args[1]);
+							ChatColor.DARK_PURPLE + "Unmarked chunks of player: " + ChatColor.RESET + args[1]);
 				} else {
 					sender.sendMessage(ChatColor.DARK_PURPLE + args[1] + " had no chunks marked!" + ChatColor.RESET);
 				}
@@ -294,7 +295,7 @@ public class ChunkUp extends JavaPlugin {
 		} else {
 			// Running command from a console
 			if (args.length == 2 && ChunkDataVector.clear(args[1])) {
-				sender.sendMessage(ChatColor.DARK_PURPLE + "Deleted chunks of player: " + ChatColor.RESET + args[1]);
+				sender.sendMessage(ChatColor.DARK_PURPLE + "Unmarked chunks of player: " + ChatColor.RESET + args[1]);
 			} else {
 				sender.sendMessage(ChatColor.DARK_RED + "You need to tell me a player!" + ChatColor.RESET);
 			}
@@ -421,6 +422,26 @@ public class ChunkUp extends JavaPlugin {
 	}
 
 	/**
+	 * Converts multiple arguments to one String
+	 * 
+	 * @param sender
+	 * @param args
+	 * @param position
+	 * @return value. -1 if no route was given.
+	 */
+	private String convertToString(CommandSender sender, String[] args, int startpos) {
+		String ret = null;
+		if (args.length > startpos) {
+			ret = new String();
+			for (int i = startpos; i < args.length; i++) {
+				ret += args[i] + " ";
+			}
+			ret = ret.trim();
+		}
+		return ret;
+	}
+	
+	/**
 	 * Converts an argument to integer
 	 * 
 	 * @param sender
@@ -439,6 +460,8 @@ public class ChunkUp extends JavaPlugin {
 			} catch (ArrayIndexOutOfBoundsException e) {
 				sender.sendMessage(ChatColor.DARK_RED + "You need to tell me a value!" + ChatColor.RESET);
 			}
+		} else {
+			sender.sendMessage(ChatColor.DARK_RED + "You need to tell me one value!" + ChatColor.RESET);
 		}
 		return ret;
 	}

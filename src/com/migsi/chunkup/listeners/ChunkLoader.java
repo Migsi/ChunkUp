@@ -1,9 +1,13 @@
-package com.migsi.chunkup;
+package com.migsi.chunkup.listeners;
 
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import com.migsi.chunkup.ChunkUp;
+import com.migsi.chunkup.data.ChunkData;
+import com.migsi.chunkup.data.ChunkDataVector;
 
 public class ChunkLoader extends BukkitRunnable implements Listener {
 
