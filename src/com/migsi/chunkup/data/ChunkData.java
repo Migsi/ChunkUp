@@ -148,10 +148,8 @@ public class ChunkData {
 			public void run() {
 				if (ownermap.containsKey(owner)) {
 					ownermap.put(owner, ownermap.get(owner) + 1);
-					ChunkUp.message(ownermap.get(owner) + "count up");
 				} else {
 					ownermap.put(owner, 1);
-					ChunkUp.message("added");
 				}
 			}
 		}.runTaskAsynchronously(ChunkUp.instance);
@@ -164,10 +162,8 @@ public class ChunkData {
 				Integer value = ownermap.get(owner);
 				if (value == null || value <= 1) {
 					ownermap.remove(owner);
-					ChunkUp.message("removed");
 				} else {
 					ownermap.put(owner, value - 1);
-					ChunkUp.message(ownermap.get(owner) + " count down");
 				}
 			}
 		}.runTaskAsynchronously(ChunkUp.instance);
