@@ -6,17 +6,20 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.migsi.chunkup.commands.Commands;
+import com.migsi.chunkup.commands.Permissions;
 import com.migsi.chunkup.config.Config;
 import com.migsi.chunkup.data.ChunkData;
 import com.migsi.chunkup.data.ChunkDataVector;
 import com.migsi.chunkup.data.ChunkUpPlayer;
 import com.migsi.chunkup.listeners.ChunkLoader;
 import com.migsi.chunkup.listeners.MovementListener;
-import com.migsi.chunkup.permissions.Permissions;
+import com.migsi.chunkup.tabcompleter.ChunkUpTabCompleter;
 
 public class ChunkUp extends JavaPlugin {
 	
@@ -32,6 +35,8 @@ public class ChunkUp extends JavaPlugin {
 	private ChunkLoader loader = null;
 	// Config
 	private Config config = null;
+	// TabCompleter
+	private TabCompleter tabcompleter = null;
 
 	public void onEnable() {
 		getLogger().info("Initializing ChunkUp...");
@@ -51,13 +56,17 @@ public class ChunkUp extends JavaPlugin {
 		// Setting up MovementListener
 		movementListener = new MovementListener();
 		getServer().getPluginManager().registerEvents(movementListener, this);
+		
+		// Setting up tab completer
+		tabcompleter = new ChunkUpTabCompleter();
+		getCommand("chunkup").setTabCompleter(tabcompleter);
 
 		getLogger().info("ChunkUp was succesfully enabled");
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		boolean ret = true;
-		if (cmd.getName().equalsIgnoreCase("chunkup")) {
+		if (cmd.getName().equalsIgnoreCase(Commands.CHUNKUP)) {
 
 			// Check for needed arguments
 			if (args.length > 0) {
@@ -65,50 +74,50 @@ public class ChunkUp extends JavaPlugin {
 
 					// Check arguments
 					switch (args[0].toLowerCase()) {
-					case "help":
+					case Commands.HELP:
 						ret = !checkPermission(sender, Permissions.HELP);
 						break;
-					case "info":
+					case Commands.INFO:
 						if (checkPermission(sender, Permissions.INFO)) {
 							info(sender);
 						}
 						break;
-					case "mark":
+					case Commands.MARK:
 						if (checkPermission(sender, Permissions.MARK)) {
 							mark(sender, args);
 						}
 						break;
-					case "follow":
+					case Commands.FOLLOW:
 						if (checkPermission(sender, Permissions.FOLLOW)) {
 							followMark(sender, args);
 						}
 						break;
-					case "escape":
+					case Commands.ESCAPE:
 						if (checkPermission(sender, Permissions.ESCAPE)) {
 							escape(sender);
 						}
 						break;
-					case "unmark":
+					case Commands.UNMARK:
 						if (checkPermission(sender, Permissions.UNMARK)) {
 							unmark(sender);
 						}
 						break;
-					case "unmarkall":
+					case Commands.UNMARKALL:
 						if (checkPermission(sender, Permissions.UNMARKALL_OWN)) {
 							unmarkall(sender, args);
 						}
 						break;
-					case "list":
+					case Commands.LIST:
 						if (checkPermission(sender, Permissions.LIST)) {
 							list(sender);
 						}
 						break;
-					case "set":
+					case Commands.SET:
 						if (checkPermission(sender, Permissions.SET)) {
 							changeConfig(sender, args);
 						}
 						break;
-					case "get":
+					case Commands.GET:
 						if (checkPermission(sender, Permissions.GET)) {
 							changeConfig(sender, args);
 						}
@@ -121,26 +130,26 @@ public class ChunkUp extends JavaPlugin {
 
 					// If the user is on a console
 					switch (args[0].toLowerCase()) {
-					case "help":
+					case Commands.HELP:
 						ret = false;
 						break;
-					case "unmarkall":
+					case Commands.UNMARKALL:
 						unmarkall(sender, args);
 						break;
-					case "list":
+					case Commands.LIST:
 						list(sender);
 						break;
-					case "set":
+					case Commands.SET:
 						changeConfig(sender, args);
 						break;
-					case "get":
+					case Commands.GET:
 						changeConfig(sender, args);
 						break;
-					case "info":
-					case "mark":
-					case "follow":
-					case "escape":
-					case "unmark":
+					case Commands.INFO:
+					case Commands.MARK:
+					case Commands.FOLLOW:
+					case Commands.ESCAPE:
+					case Commands.UNMARK:
 						sender.sendMessage(ChatColor.DARK_RED
 								+ "Sorry, you can't run this command from a console!"
 								+ ChatColor.RESET);
@@ -198,6 +207,7 @@ public class ChunkUp extends JavaPlugin {
 	 */
 	public void mark(CommandSender sender, String[] args) {
 		if (ChunkDataVector.add(new ChunkData(sender, convertToString(sender, args, 1), -1))) {
+			ChunkData.addToMap(sender.getName());
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was marked" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "This chunk was already marked" + ChatColor.RESET);
@@ -212,16 +222,15 @@ public class ChunkUp extends JavaPlugin {
 	 */
 	public void followMark(CommandSender sender, String[] args) {
 		if (args.length >= 2) {
-			//int route = convertToInt(sender, args, 3);
 			switch (args[1].toLowerCase()) {
-			case "mark":
+			case Commands.MARK:
 				if (movementListener.add((Player) sender, true, convertToString(sender, args, 2))) {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm following you now" + ChatColor.RESET);
 				} else {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm already following you!" + ChatColor.RESET);
 				}
 				break;
-			case "unmark":
+			case Commands.UNMARK:
 				if (movementListener.add((Player) sender, false, convertToString(sender, args, 2))) {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm following you now" + ChatColor.RESET);
 				} else {
@@ -260,6 +269,7 @@ public class ChunkUp extends JavaPlugin {
 	 */
 	public void unmark(CommandSender sender) {
 		if (ChunkDataVector.remove(new ChunkData(sender, true))) {
+			ChunkData.removeFromMap(sender.getName());
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was unmarked" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "This chunk is currently not marked" + ChatColor.RESET);
@@ -328,24 +338,24 @@ public class ChunkUp extends JavaPlugin {
 		if (args.length > 1) {
 			// Determine subcommand
 			switch (args[0].toLowerCase()) {
-			case "set":
+			case Commands.SET:
 				// Determine options
 				switch (args[1].toLowerCase()) {
-				case "ignoreinterval":
+				case Commands.IGNOREINTERVAL:
 					ChunkUpPlayer.setIgnoreCount(convertToInt(sender, args, 2));
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Ignore interval was set to: " + ChatColor.RESET
 							+ ChunkUpPlayer.getIgnoreCount());
 					break;
-				case "refreshtime":
+				case Commands.REFRESHTIME:
 					ChunkLoader.setRefreshTime(convertToInt(sender, args, 2));
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Refresh time was set to: " + ChatColor.RESET
 							+ ChunkLoader.getRefreshTime());
 					break;
-				case "altchunkloader":
+				case Commands.ALTCHUNKLOADER:
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Using alternative ChunkLoader: " + ChatColor.RESET
 							+ toggleAlternativeChunkLoader(convertToBoolean(sender, args, 2)));
 					break;
-				case "owners":
+				case Commands.OWNERS:
 					ChunkDataVector.setUseOwners(convertToBoolean(sender, args, 2));
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Chunk owners enabled: " + ChatColor.RESET
 							+ ChunkDataVector.isUsingOwners());
@@ -354,26 +364,26 @@ public class ChunkUp extends JavaPlugin {
 					sender.sendMessage(ChatColor.DARK_RED + "I don't know that setting!" + ChatColor.RESET);
 				}
 				break;
-			case "get":
+			case Commands.GET:
 				// Determine options
 				switch (args[1].toLowerCase()) {
-				case "ignoreinterval":
+				case Commands.IGNOREINTERVAL:
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Ignore interval is set to: " + ChatColor.RESET
 							+ ChunkUpPlayer.getIgnoreCount());
 					break;
-				case "refreshtime":
+				case Commands.REFRESHTIME:
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Refresh time is set to: " + ChatColor.RESET
 							+ ChunkLoader.getRefreshTime());
 					break;
-				case "altchunkloader":
+				case Commands.ALTCHUNKLOADER:
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Using alternative ChunkLoader: " + ChatColor.RESET
 							+ isUseAlternativeChunkLoader());
 					break;
-				case "owners":
+				case Commands.OWNERS:
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Chunk owners enabled: " + ChatColor.RESET
 							+ ChunkDataVector.isUsingOwners());
 					break;
-				case "info":
+				case Commands.INFO:
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Ignore interval is set to: " + ChatColor.RESET
 							+ ChunkUpPlayer.getIgnoreCount());
 					sender.sendMessage(ChatColor.DARK_PURPLE + "Refresh time is set to: " + ChatColor.RESET
@@ -494,7 +504,7 @@ public class ChunkUp extends JavaPlugin {
 	 * @return true if player has permission
 	 */
 	public boolean checkPermission(CommandSender sender, String permission) {
-		if (!sender.hasPermission(permission) && Config.Permissions || !sender.isOp() && Config.Op) {
+		if (!sender.hasPermission(permission) && Permissions.Permissions || !sender.isOp() && Permissions.Op) {
 			sender.sendMessage(
 					ChatColor.DARK_RED + "Sorry, you don't have the permission to use this command!" + ChatColor.RESET);
 			return false;

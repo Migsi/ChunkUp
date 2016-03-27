@@ -1,5 +1,7 @@
 package com.migsi.chunkup.data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.bukkit.ChatColor;
@@ -7,7 +9,13 @@ import org.bukkit.ChatColor;
 public class ChunkDataVector {
 
 	private static Vector<ChunkData> ChunkDataVector = null;
-
+	
+	// TODO für tabcomplete bei spielern, alle owner separat einzeln speichern, mit zähler (hashmap?) bei hinzufügen/löschen mitzählen
+	// Ansonsten hole aus jedem objekt owner bzw description heraus und stelle zusammen (langsam?)
+	
+	// TODO Erstelle async thread zum löschen. Überprüfen ob spieler nirgendwo mehr owner ist, wenn ja, eintrag löschen
+	
+	
 	private static boolean useOwners = true;
 
 	public ChunkDataVector() {
@@ -28,6 +36,7 @@ public class ChunkDataVector {
 	public static boolean remove(ChunkData chdata) {
 		if (get(chdata) != null) {
 			if (!useOwners || get(chdata).isOnlyOwner(chdata.getMainOwner())) {
+				get(chdata).removeOwner(chdata.getMainOwner());
 				return ChunkDataVector.remove(chdata);
 			} else {
 				return get(chdata).removeOwner(chdata.getMainOwner());
@@ -45,13 +54,13 @@ public class ChunkDataVector {
 					ChunkDataVector.remove(i);
 					ret = true;
 				} else {
-					if (ChunkDataVector.get(i).removeOwner(owner)) {
-						ret = true;
-					}
+					ret = ChunkDataVector.get(i).removeOwner(owner);
 					i++;
 				}
+				ChunkData.removeFromMap(owner);
 			}
 		} else {
+			ChunkData.clearOwnerMap();
 			ChunkDataVector.clear();
 			ret = true;
 		}
@@ -92,6 +101,19 @@ public class ChunkDataVector {
 
 	public static Vector<ChunkData> getChunkDataVector() {
 		return ChunkDataVector;
+	}
+	
+	public static List<String> getOwners() {
+		List<String> ret = null;
+		if (!ChunkDataVector.isEmpty()) {
+			ret = new ArrayList<>();
+			for (int i = 0; i < ChunkDataVector.size(); i++) {
+				ChunkDataVector.get(i).getOwners();
+			}
+			
+		}
+		
+		return ret;
 	}
 
 	public static String list() {

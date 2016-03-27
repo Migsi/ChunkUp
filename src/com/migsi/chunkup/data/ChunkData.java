@@ -1,21 +1,28 @@
 package com.migsi.chunkup.data;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import com.migsi.chunkup.ChunkUp;
 
 public class ChunkData {
 
+	private static HashMap<String, Integer> ownermap = null;
+
 	private static long NextID = 0;
 	private static long NextRoute = 0;
+
 	private final long ID;
-	// private long route;
 	private String description = null;
-	private Vector<String> owners = null;
+	private List<String> owners = null;
 	private String world = null;
 	private int x, z;
 
@@ -27,6 +34,9 @@ public class ChunkData {
 	}
 
 	public ChunkData(CommandSender sender, boolean remove) {
+		if (ownermap == null) {
+			ownermap = new HashMap<>();
+		}
 		if (!remove) {
 			ID = NextID;
 			description = new String("Route " + Long.toString(NextRoute));
@@ -35,8 +45,8 @@ public class ChunkData {
 		} else {
 			ID = -1;
 		}
-
-		owners = new Vector<String>();
+		
+		owners = new ArrayList<>();
 		owners.add(sender.getName());
 
 		Location loc = ((Player) sender).getLocation();
@@ -46,6 +56,9 @@ public class ChunkData {
 	}
 
 	public ChunkData(CommandSender sender, String description, long route) {
+		if (ownermap == null) {
+			ownermap = new HashMap<>();
+		}
 		ID = NextID;
 		NextID++;
 		if (description != null) {
@@ -59,7 +72,8 @@ public class ChunkData {
 				NextRoute++;
 			}
 		}
-		owners = new Vector<String>();
+
+		owners = new ArrayList<>();
 		owners.add(sender.getName());
 
 		Location loc = ((Player) sender).getLocation();
@@ -69,18 +83,20 @@ public class ChunkData {
 	}
 
 	public ChunkData(String[] data) throws NumberFormatException, ArrayIndexOutOfBoundsException, NullPointerException {
+		if (ownermap == null) {
+			ownermap = new HashMap<>();
+		}
 		ID = Integer.parseInt(data[0]);
 		description = data[1];
-		// route = Integer.parseInt(data[1]);
 
-		owners = new Vector<String>();
+		owners = new ArrayList<>();
 		if (data[2].indexOf(',') > -1) {
-			String[] owners = data[2].split(",");
-			for (String owner : owners) {
-				addOwner(owner);
+			String[] ownerlist = data[2].split(",");
+			for (String owner : ownerlist) {
+				owners.add(owner);
 			}
 		} else {
-			addOwner(data[2]);
+			owners.add(data[2]);
 		}
 
 		world = data[3];
@@ -118,24 +134,66 @@ public class ChunkData {
 		NextRoute++;
 	}
 
-	public Vector<String> getOwners() {
+	public static HashMap<String, Integer> getOwnerMap() {
+		return ownermap;
+	}
+
+	public static void clearOwnerMap() {
+		ownermap.clear();
+	}
+	
+	public static void addToMap(final String owner) {
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				if (ownermap.containsKey(owner)) {
+					ownermap.put(owner, ownermap.get(owner) + 1);
+					ChunkUp.message(ownermap.get(owner) + "count up");
+				} else {
+					ownermap.put(owner, 1);
+					ChunkUp.message("added");
+				}
+			}
+		}.runTaskAsynchronously(ChunkUp.instance);
+	}
+	
+	public static void removeFromMap(final String owner) {
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				Integer value = ownermap.get(owner);
+				if (value == null || value <= 1) {
+					ownermap.remove(owner);
+					ChunkUp.message("removed");
+				} else {
+					ownermap.put(owner, value - 1);
+					ChunkUp.message(ownermap.get(owner) + " count down");
+				}
+			}
+		}.runTaskAsynchronously(ChunkUp.instance);
+	}
+	
+	public boolean addOwner(String owner) {
+		return owners.add(owner);
+	}
+	
+	public boolean removeOwner(String owner) {
+		return owners.remove(owner);
+	}
+
+	public List<String> getOwners() {
 		return owners;
 	}
 
 	public String getMainOwner() {
-		return owners.firstElement();
+		if (owners != null && !owners.isEmpty()) {
+			return owners.get(0);
+		}
+		return null;
 	}
 
 	public int ownerCount() {
 		return owners.size();
-	}
-
-	public boolean addOwner(String owner) {
-		return owners.add(owner);
-	}
-
-	public boolean removeOwner(String owner) {
-		return owners.remove(owner);
 	}
 
 	public boolean isOwner(String owner) {
@@ -145,12 +203,6 @@ public class ChunkData {
 	public boolean isOnlyOwner(String owner) {
 		return (owners.size() == 1 && isOwner(owner));
 	}
-
-	/*
-	 * public long getRoute() { return route; }
-	 * 
-	 * public void setRoute(long route) { this.route = route; }
-	 */
 
 	public String getDescription() {
 		return description;

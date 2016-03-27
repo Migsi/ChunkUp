@@ -20,7 +20,7 @@ For downloading a compiled version, see [here](http://dev.bukkit.org/bukkit-plug
 
 **/chunkup mark [description]** - Marks the chunk you're in and adds an optional description
 
-**/chunkup follow mark|unmark [description]** - Follows the player and marks all chunks he travels through
+**/chunkup follow mark|unmark [description]** - Follows the player and marks all chunks he travels through, [description] works only using "mark"
 
 **/chunkup escape** - Stops chasing the player
 
@@ -34,13 +34,13 @@ For downloading a compiled version, see [here](http://dev.bukkit.org/bukkit-plug
 
 ---
 
-The **"description"** argument is optional and gets used to group greater areas of chunks together. Actually the plugin just gives every marked chunk a description, but does nothing more with it. In a future release I'll maybe add some group functions, that make management easier.
+The **"description"** argument is optional and gets used to group greater areas of chunks together. At the moment no features which use this value are implemented, it's just used to give the players a better overview. In a future release I'll add some management functions.
 
 **"ignoreInterval"** is used to skip some PlayerMovementEvents, which are used to follow the player. This makes the processing of chunks faster, while the player is chased. It's standart value is 10, which should be enough to speed the plugin up a little, while maintaining full functionality. Greater values can speed up the plugin, but you risk to miss some chunks, if you travel through them fast.
 
 **"refreshTime"** tells the server how many ticks can go by until the plugin reloads marked chunks. A server running on normal speed should have around 20 ticks per second, while the standart value of "refreshTime" is set to 50. This means chunks are reloaded every 2,5 seconds. The standart value is set this low, to guarantee full functionality with most the servers. **It is highly recommended to fine tune this value by your own and post suggestions for other working values.**
 
-**"altChunkLoader"** is a setting to toggle event based chunk loading. This makes the plugin much more efficient. As long as you don't have dozens of players moving around while keeping up dozens of chunks, it is **highly recommended to use this** way to keep your chunks loaded. To toggle it, use the [value] argument with true/false.
+**"altChunkLoader"** is a setting to toggle event based chunk loading. This makes the plugin much more efficient. As long as you don't have dozens of players moving around while keeping up dozens of chunks, it is **highly recommended to use this** way to keep your chunks loaded. To toggle it, use the [value] argument with true/false. Since version 1.2.0 this feature is **enabled by default**.
 
 **"owners"** is a setting to determine if the owner system is used or not. If it is enabled, only the player who marked a chunk or everyone with the "chunkup.unmarkall" permission can unmark it. If it is disabled, marked chunks will still have their owners, but everybody with the "chunkup.unmarkall.own" permission can remove all chunks.
 
@@ -72,7 +72,7 @@ The **"description"** argument is optional and gets used to group greater areas 
 
 #Compatibility
 
-The plugin was testet with PaperSpigot and should work with Bukkit too. **It doesn't work with Spigot**, because Spigot blocks any attempt to load chunks out of range from players.
+The plugin was tested with PaperSpigot and should work with Bukkit too. **It doesn't work with Spigot**, because Spigot blocks any attempt to load chunks out of range from players.
 
 #Other
 

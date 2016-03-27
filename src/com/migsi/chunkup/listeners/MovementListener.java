@@ -75,8 +75,16 @@ public class MovementListener implements Listener {
 
 	private boolean automark(ChunkUpPlayer player) {
 		if (player.isMarking()) {
-			return ChunkDataVector.add(new ChunkData(player.getPlayer(), player.getDescription(), player.getRoute()));
+			if (ChunkDataVector.add(new ChunkData(player.getPlayer(), player.getDescription(), player.getRoute()))) {
+				ChunkData.addToMap(player.getPlayer().getName());
+				return true;
+			}
+			return false;
 		}
-		return ChunkDataVector.remove(new ChunkData(player.getPlayer(), true));
+		if (ChunkDataVector.remove(new ChunkData(player.getPlayer(), true))) {
+			ChunkData.removeFromMap(player.getPlayer().getName());
+			return true;
+		}
+		return false;
 	}
 }
