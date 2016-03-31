@@ -19,9 +19,9 @@ public class Commands {
 	public static final String SET = "set";
 	public static final String GET = "get";
 
-	public static final String IGNOREINTERVAL = "ignoreInterval";
-	public static final String REFRESHTIME = "refreshTime";
-	public static final String ALTCHUNKLOADER = "altChunkLoader";
+	public static final String IGNOREINTERVAL = "ignoreinterval";
+	public static final String REFRESHTIME = "refreshtime";
+	public static final String ALTCHUNKLOADER = "altchunkloader";
 	public static final String OWNERS = "owners";
 
 	public static List<String> getCommands(String topcmd) {

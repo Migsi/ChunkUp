@@ -1,6 +1,7 @@
 package com.migsi.chunkup.listeners;
 
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -27,7 +28,7 @@ public class ChunkLoader extends BukkitRunnable implements Listener {
 		loadChunks();
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onChunkUnload(ChunkUnloadEvent event) {
 		if (ChunkDataVector.contains(new ChunkData(event.getChunk()))) {
 			event.setCancelled(true);

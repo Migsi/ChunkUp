@@ -1,6 +1,6 @@
 name: ChunkUp
 main: com.migsi.chunkup.ChunkUp
-version: 1.5.0
+version: 1.5.1
 author: Migsi
 description: This plugin keeps selected chunks active.
 
