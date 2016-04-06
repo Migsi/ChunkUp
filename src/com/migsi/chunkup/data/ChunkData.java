@@ -3,7 +3,9 @@ package com.migsi.chunkup.data;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -15,14 +17,14 @@ import com.migsi.chunkup.ChunkUp;
 
 public class ChunkData {
 
-	private static HashMap<String, Integer> ownermap = null;
+	private static HashMap<ChunkUpPlayer, Integer> ownermap = null;
 
 	private static long NextID = 0;
 	private static long NextRoute = 0;
 
 	private final long ID;
 	private String description = null;
-	private List<String> owners = null;
+	private List<ChunkUpPlayer> owners = null;
 	private String world = null;
 	private int x, z;
 
@@ -47,7 +49,7 @@ public class ChunkData {
 		}
 		
 		owners = new ArrayList<>();
-		owners.add(sender.getName());
+		owners.add(new ChunkUpPlayer((Player)sender));
 
 		Location loc = ((Player) sender).getLocation();
 		world = loc.getWorld().getName();
@@ -74,7 +76,7 @@ public class ChunkData {
 		}
 
 		owners = new ArrayList<>();
-		owners.add(sender.getName());
+		owners.add(new ChunkUpPlayer((Player)sender));
 
 		Location loc = ((Player) sender).getLocation();
 		world = loc.getWorld().getName();
@@ -89,14 +91,15 @@ public class ChunkData {
 		ID = Integer.parseInt(data[0]);
 		description = data[1];
 
+		// TODO check if player even exists?
 		owners = new ArrayList<>();
 		if (data[2].indexOf(',') > -1) {
 			String[] ownerlist = data[2].split(",");
 			for (String owner : ownerlist) {
-				owners.add(owner);
+				owners.add(new ChunkUpPlayer(Bukkit.getOfflinePlayer(UUID.fromString(owner)).getPlayer()));
 			}
 		} else {
-			owners.add(data[2]);
+			owners.add(new ChunkUpPlayer(Bukkit.getOfflinePlayer(UUID.fromString(data[2])).getPlayer()));
 		}
 
 		world = data[3];
@@ -134,7 +137,7 @@ public class ChunkData {
 		NextRoute++;
 	}
 
-	public static HashMap<String, Integer> getOwnerMap() {
+	public static HashMap<ChunkUpPlayer, Integer> getOwnerMap() {
 		return ownermap;
 	}
 
@@ -142,7 +145,7 @@ public class ChunkData {
 		ownermap.clear();
 	}
 	
-	public static void addToMap(final String owner) {
+	public static void addToMap(final ChunkUpPlayer owner) {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -155,7 +158,7 @@ public class ChunkData {
 		}.runTaskAsynchronously(ChunkUp.instance);
 	}
 	
-	public static void removeFromMap(final String owner) {
+	public static void removeFromMap(final ChunkUpPlayer owner) {
 		new BukkitRunnable() {
 			@Override
 			public void run() {
@@ -169,19 +172,19 @@ public class ChunkData {
 		}.runTaskAsynchronously(ChunkUp.instance);
 	}
 	
-	public boolean addOwner(String owner) {
+	public boolean addOwner(ChunkUpPlayer owner) {
 		return owners.add(owner);
 	}
 	
-	public boolean removeOwner(String owner) {
+	public boolean removeOwner(ChunkUpPlayer owner) {
 		return owners.remove(owner);
 	}
 
-	public List<String> getOwners() {
+	public List<ChunkUpPlayer> getOwners() {
 		return owners;
 	}
 
-	public String getMainOwner() {
+	public ChunkUpPlayer getMainOwner() {
 		if (owners != null && !owners.isEmpty()) {
 			return owners.get(0);
 		}
@@ -192,11 +195,11 @@ public class ChunkData {
 		return owners.size();
 	}
 
-	public boolean isOwner(String owner) {
+	public boolean isOwner(ChunkUpPlayer owner) {
 		return owners.contains(owner);
 	}
 
-	public boolean isOnlyOwner(String owner) {
+	public boolean isOnlyOwner(ChunkUpPlayer owner) {
 		return (owners.size() == 1 && isOwner(owner));
 	}
 

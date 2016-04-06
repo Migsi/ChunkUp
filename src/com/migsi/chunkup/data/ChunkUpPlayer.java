@@ -1,26 +1,34 @@
 package com.migsi.chunkup.data;
 
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 public class ChunkUpPlayer {
 
 	private static int IgnoreCount = 10;
 
-	private Player player = null;
+	private UUID uuid = null;
 	private String description = null;
 	private long route = -1;
 	private boolean mark = false;
 	private int chunkcount = 0;
 	private int ignore = 0;
 
+	public ChunkUpPlayer(Player player) {
+		this.uuid = player.getUniqueId();
+	}
+	
 	public ChunkUpPlayer(Player player, boolean mark) {
-		this.player = player;
+		this.uuid = player.getUniqueId();
 		this.route = ChunkData.getNextRoute();
 		this.mark = mark;
 	}
 
 	public ChunkUpPlayer(Player player, String description, boolean mark) {
-		this.player = player;
+		this.uuid = player.getUniqueId();
 		if (description != null) {
 			this.description = description;
 		} else {
@@ -29,8 +37,12 @@ public class ChunkUpPlayer {
 		this.mark = mark;
 	}
 
-	public Player getPlayer() {
-		return player;
+	public UUID getUUID() {
+		return uuid;
+	}
+	
+	public OfflinePlayer getOfflinePlayer() {
+		return Bukkit.getOfflinePlayer(uuid);
 	}
 
 	public String getDescription() {
@@ -70,8 +82,12 @@ public class ChunkUpPlayer {
 		return true;
 	}
 
-	public boolean equals(Player player) {
-		return this.player.equals(player);
+	public boolean equals(ChunkUpPlayer player) {
+		return this.uuid.equals(player.getUUID());
+	}
+	
+	public String toConfString() {
+		return uuid.toString();
 	}
 
 	public static void setIgnoreCount(int count) {

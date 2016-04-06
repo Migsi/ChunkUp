@@ -22,7 +22,7 @@ import com.migsi.chunkup.listeners.MovementListener;
 import com.migsi.chunkup.tabcompleter.ChunkUpTabCompleter;
 
 public class ChunkUp extends JavaPlugin {
-	
+
 	public static ChunkUp instance = null;
 
 	// Is verbose active
@@ -40,9 +40,9 @@ public class ChunkUp extends JavaPlugin {
 
 	public void onEnable() {
 		getLogger().info("Initializing ChunkUp...");
-		
+
 		instance = this;
-		
+
 		// Initializing ChunkDataVector
 		new ChunkDataVector();
 		// Setting up config config
@@ -52,11 +52,11 @@ public class ChunkUp extends JavaPlugin {
 		if (useAlternativeChunkLoader) {
 			getServer().getPluginManager().registerEvents(loader, this);
 		}
-		
+
 		// Setting up MovementListener
 		movementListener = new MovementListener();
 		getServer().getPluginManager().registerEvents(movementListener, this);
-		
+
 		// Setting up tab completer
 		tabcompleter = new ChunkUpTabCompleter();
 		getCommand("chunkup").setTabCompleter(tabcompleter);
@@ -150,8 +150,7 @@ public class ChunkUp extends JavaPlugin {
 					case Commands.FOLLOW:
 					case Commands.ESCAPE:
 					case Commands.UNMARK:
-						sender.sendMessage(ChatColor.DARK_RED
-								+ "Sorry, you can't run this command from a console!"
+						sender.sendMessage(ChatColor.DARK_RED + "Sorry, you can't run this command from a console!"
 								+ ChatColor.RESET);
 						break;
 					default:
@@ -207,7 +206,7 @@ public class ChunkUp extends JavaPlugin {
 	 */
 	public void mark(CommandSender sender, String[] args) {
 		if (ChunkDataVector.add(new ChunkData(sender, convertToString(sender, args, 1), -1))) {
-			ChunkData.addToMap(sender.getName());
+			ChunkData.addToMap(new ChunkUpPlayer((Player) sender));
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was marked" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "This chunk was already marked" + ChatColor.RESET);
@@ -224,14 +223,15 @@ public class ChunkUp extends JavaPlugin {
 		if (args.length >= 2) {
 			switch (args[1].toLowerCase()) {
 			case Commands.MARK:
-				if (movementListener.add((Player) sender, true, convertToString(sender, args, 2))) {
+				// TODO wo werden ungültige zeichen für description geprüft?
+				if (movementListener.add(new ChunkUpPlayer((Player) sender, convertToString(sender, args, 2), true))) {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm following you now" + ChatColor.RESET);
 				} else {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm already following you!" + ChatColor.RESET);
 				}
 				break;
 			case Commands.UNMARK:
-				if (movementListener.add((Player) sender, false, convertToString(sender, args, 2))) {
+				if (movementListener.add(new ChunkUpPlayer((Player) sender, convertToString(sender, args, 2), false))) {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm following you now" + ChatColor.RESET);
 				} else {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm already following you!" + ChatColor.RESET);
@@ -255,7 +255,7 @@ public class ChunkUp extends JavaPlugin {
 	 * @param sender
 	 */
 	public void escape(CommandSender sender) {
-		if (movementListener.remove((Player) sender)) {
+		if (movementListener.remove(new ChunkUpPlayer((Player) sender))) {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "I've lost your trace" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "I wasn't following you!" + ChatColor.RESET);
@@ -269,7 +269,7 @@ public class ChunkUp extends JavaPlugin {
 	 */
 	public void unmark(CommandSender sender) {
 		if (ChunkDataVector.remove(new ChunkData(sender, true))) {
-			ChunkData.removeFromMap(sender.getName());
+			ChunkData.removeFromMap(new ChunkUpPlayer((Player) sender));
 			sender.sendMessage(ChatColor.DARK_PURPLE + "The chunk was unmarked" + ChatColor.RESET);
 		} else {
 			sender.sendMessage(ChatColor.DARK_PURPLE + "This chunk is currently not marked" + ChatColor.RESET);
@@ -284,28 +284,54 @@ public class ChunkUp extends JavaPlugin {
 	public void unmarkall(CommandSender sender, String[] args) {
 		if (sender instanceof Player) {
 			if (args.length == 1) {
-				if (ChunkDataVector.clear(sender.getName())) {
+				if (ChunkDataVector.clear(new ChunkUpPlayer((Player) sender))) {
 					if (ChunkDataVector.isUsingOwners()) {
-						sender.sendMessage(ChatColor.DARK_PURPLE + "All your chunks have been unmarked" + ChatColor.RESET);
+						sender.sendMessage(
+								ChatColor.DARK_PURPLE + "All your chunks have been unmarked" + ChatColor.RESET);
 					} else {
 						sender.sendMessage(ChatColor.DARK_PURPLE + "All chunks have been unmarked" + ChatColor.RESET);
 					}
 				} else {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "You had no chunks marked!" + ChatColor.RESET);
 				}
-			} else if (args.length == 2
-					&& (sender.getName().equals(args[1]) || checkPermission(sender, Permissions.UNMARKALL))) {
-				if (ChunkDataVector.clear(args[1])) {
-					sender.sendMessage(
-							ChatColor.DARK_PURPLE + "Unmarked chunks of player: " + ChatColor.RESET + args[1]);
-				} else {
-					sender.sendMessage(ChatColor.DARK_PURPLE + args[1] + " had no chunks marked!" + ChatColor.RESET);
+			} else if (args.length == 2) {
+				if (args[1].toLowerCase().equals("all") && checkPermission(sender, Permissions.UNMARKALL)) {
+					ChunkDataVector.clearAll();
+					sender.sendMessage(ChatColor.DARK_PURPLE + "Unmarked chunks of all players!");
+
+				} else if (sender.getName().equals(args[1]) && checkPermission(sender, Permissions.UNMARKALL_OWN)) {
+					if (ChunkDataVector.clear(new ChunkUpPlayer((Player) sender))) {
+						sender.sendMessage(
+								ChatColor.DARK_PURPLE + "Unmarked chunks of player: " + ChatColor.RESET + args[1]);
+					} else {
+						sender.sendMessage(
+								ChatColor.DARK_PURPLE + args[1] + " had no chunks marked!" + ChatColor.RESET);
+					}
+
+				} else if (checkPermission(sender, Permissions.UNMARKALL)) {
+					// TODO look for other solution to prevent deprecation
+					if (ChunkDataVector.clear(new ChunkUpPlayer(Bukkit.getPlayer(args[1])))) {
+						sender.sendMessage(
+								ChatColor.DARK_PURPLE + "Unmarked chunks of player: " + ChatColor.RESET + args[1]);
+					} else {
+						sender.sendMessage(
+								ChatColor.DARK_PURPLE + args[1] + " had no chunks marked!" + ChatColor.RESET);
+					}
 				}
 			}
 		} else {
 			// Running command from a console
-			if (args.length == 2 && ChunkDataVector.clear(args[1])) {
-				sender.sendMessage(ChatColor.DARK_PURPLE + "Unmarked chunks of player: " + ChatColor.RESET + args[1]);
+			if (args.length == 2) {
+				if (args[1].toLowerCase().equals("all")) {
+					ChunkDataVector.clearAll();
+					sender.sendMessage(ChatColor.DARK_PURPLE + "Unmarked chunks of all players!");
+				} else {
+					// TODO look for other solution to prevent deprecation
+					if (ChunkDataVector.clear(new ChunkUpPlayer(Bukkit.getPlayer(args[1])))) {
+						sender.sendMessage(
+								ChatColor.DARK_PURPLE + "Unmarked chunks of player: " + ChatColor.RESET + args[1]);
+					}
+				}
 			} else {
 				sender.sendMessage(ChatColor.DARK_RED + "You need to tell me a player!" + ChatColor.RESET);
 			}
@@ -328,8 +354,8 @@ public class ChunkUp extends JavaPlugin {
 
 	/**
 	 * Changes the given configuration to the given value is used with "set"
-	 * command, otherwise tells values of the current configuration with
-	 * "get" command.
+	 * command, otherwise tells values of the current configuration with "get"
+	 * command.
 	 * 
 	 * @param sender
 	 * @param args
@@ -450,7 +476,7 @@ public class ChunkUp extends JavaPlugin {
 		}
 		return ret;
 	}
-	
+
 	/**
 	 * Converts an argument to integer
 	 * 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.migsi.chunkup.data.ChunkData;
+import com.migsi.chunkup.data.ChunkUpPlayer;
 
 public class Commands {
 
@@ -46,8 +47,8 @@ public class Commands {
 		case UNMARKALL:
 			commands.add("ALL");
 			if (ChunkData.getOwnerMap() != null) {
-				for (String owner : ChunkData.getOwnerMap().keySet()) {
-					commands.add(owner);
+				for (ChunkUpPlayer owner : ChunkData.getOwnerMap().keySet()) {
+					commands.add(owner.getOfflinePlayer().getName());
 				}
 			}
 			break;

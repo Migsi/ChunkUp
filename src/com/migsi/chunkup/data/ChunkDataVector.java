@@ -9,13 +9,7 @@ import org.bukkit.ChatColor;
 public class ChunkDataVector {
 
 	private static Vector<ChunkData> ChunkDataVector = null;
-	
-	// TODO für tabcomplete bei spielern, alle owner separat einzeln speichern, mit zähler (hashmap?) bei hinzufügen/löschen mitzählen
-	// Ansonsten hole aus jedem objekt owner bzw description heraus und stelle zusammen (langsam?)
-	
-	// TODO Erstelle async thread zum löschen. Überprüfen ob spieler nirgendwo mehr owner ist, wenn ja, eintrag löschen
-	
-	
+
 	private static boolean useOwners = true;
 
 	public ChunkDataVector() {
@@ -45,9 +39,10 @@ public class ChunkDataVector {
 		return false;
 	}
 
-	public static boolean clear(String owner) {
+	public static boolean clear(ChunkUpPlayer owner) {
 		boolean ret = false;
-		if (useOwners && !owner.toLowerCase().equals("all")) {
+		// Sinnvoll auch wenn owner nicht aktiv?
+		//if (useOwners) {
 			int i = 0;
 			while (i < ChunkDataVector.size()) {
 				if (ChunkDataVector.get(i).isOnlyOwner(owner)) {
@@ -59,12 +54,13 @@ public class ChunkDataVector {
 				}
 				ChunkData.removeFromMap(owner);
 			}
-		} else {
-			ChunkData.clearOwnerMap();
-			ChunkDataVector.clear();
-			ret = true;
-		}
+		//}
 		return ret;
+	}
+
+	public static void clearAll() {
+		ChunkData.clearOwnerMap();
+		ChunkDataVector.clear();
 	}
 
 	public static ChunkData get(int index) {
@@ -102,7 +98,7 @@ public class ChunkDataVector {
 	public static Vector<ChunkData> getChunkDataVector() {
 		return ChunkDataVector;
 	}
-	
+
 	public static List<String> getOwners() {
 		List<String> ret = null;
 		if (!ChunkDataVector.isEmpty()) {
@@ -110,9 +106,9 @@ public class ChunkDataVector {
 			for (int i = 0; i < ChunkDataVector.size(); i++) {
 				ChunkDataVector.get(i).getOwners();
 			}
-			
+
 		}
-		
+
 		return ret;
 	}
 
@@ -126,7 +122,8 @@ public class ChunkDataVector {
 						+ ChunkDataVector.get(i).toString() + "\n";
 			}
 			ret += ChatColor.GREEN + "----------------------------\n" + ChatColor.RESET + ChatColor.BOLD + "Total of "
-					+ ChatColor.RESET + ChatColor.GRAY + i + ChatColor.RESET + ChatColor.BOLD + " chunks marked." + ChatColor.RESET;
+					+ ChatColor.RESET + ChatColor.GRAY + i + ChatColor.RESET + ChatColor.BOLD + " chunks marked."
+					+ ChatColor.RESET;
 		}
 		return ret;
 	}

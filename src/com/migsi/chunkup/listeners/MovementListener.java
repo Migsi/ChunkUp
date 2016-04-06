@@ -2,8 +2,8 @@ package com.migsi.chunkup.listeners;
 
 import java.util.Vector;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -20,10 +20,10 @@ public class MovementListener implements Listener {
 		following = new Vector<ChunkUpPlayer>();
 	}
 
-	@EventHandler
+	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerMove(PlayerMoveEvent event) {
 		if (!following.isEmpty()) {
-			ChunkUpPlayer cuplayer = get(event.getPlayer());
+			ChunkUpPlayer cuplayer = new ChunkUpPlayer(event.getPlayer());
 			if (cuplayer != null && !cuplayer.Ignore()) {
 				if (automark(cuplayer)) {
 					cuplayer.incrementChunkCount();
@@ -32,39 +32,38 @@ public class MovementListener implements Listener {
 		}
 	}
 
-	public boolean add(Player player, boolean mark, String description) {
-		if (!contains(player)) {
+	public boolean add(ChunkUpPlayer cuplayer) {
+		if (!contains(cuplayer)) {
 			// if (description != null) {
-			return following.add(new ChunkUpPlayer(player, description, mark));
+			return following.add(cuplayer);
 			// }
 			// return following.add(new ChunkUpPlayer(player, mark));
 		}
 		return false;
 	}
 
-	public boolean remove(Player player) {
-		ChunkUpPlayer cuplayer = get(player);
+	public boolean remove(ChunkUpPlayer cuplayer) {
 		if (cuplayer != null) {
 			if (cuplayer.isMarking()) {
-				ChunkUp.message(cuplayer.getChunkCount() + " chunks marked by " + cuplayer.getPlayer().getName());
+				ChunkUp.message(cuplayer.getChunkCount() + " chunks marked by " + cuplayer.getOfflinePlayer().getName());
 			} else {
-				ChunkUp.message(cuplayer.getChunkCount() + " chunks demarked by " + cuplayer.getPlayer().getName());
+				ChunkUp.message(cuplayer.getChunkCount() + " chunks demarked by " + cuplayer.getOfflinePlayer().getName());
 			}
 			return following.remove(cuplayer);
 		}
 		return false;
 	}
 
-	public ChunkUpPlayer get(Player player) {
+	/*public ChunkUpPlayer get(Player player) {
 		for (int i = 0; i < following.size(); i++) {
 			if (following.get(i).equals(player)) {
 				return following.get(i);
 			}
 		}
 		return null;
-	}
+	}*/
 
-	public boolean contains(Player player) {
+	public boolean contains(ChunkUpPlayer player) {
 		for (int i = 0; i < following.size(); i++) {
 			if (following.get(i).equals(player)) {
 				return true;
@@ -75,14 +74,14 @@ public class MovementListener implements Listener {
 
 	private boolean automark(ChunkUpPlayer player) {
 		if (player.isMarking()) {
-			if (ChunkDataVector.add(new ChunkData(player.getPlayer(), player.getDescription(), player.getRoute()))) {
-				ChunkData.addToMap(player.getPlayer().getName());
+			if (ChunkDataVector.add(new ChunkData(player.getOfflinePlayer().getPlayer(), player.getDescription(), player.getRoute()))) {
+				ChunkData.addToMap(player);
 				return true;
 			}
 			return false;
 		}
-		if (ChunkDataVector.remove(new ChunkData(player.getPlayer(), true))) {
-			ChunkData.removeFromMap(player.getPlayer().getName());
+		if (ChunkDataVector.remove(new ChunkData(player.getOfflinePlayer().getPlayer(), true))) {
+			ChunkData.removeFromMap(player);
 			return true;
 		}
 		return false;
