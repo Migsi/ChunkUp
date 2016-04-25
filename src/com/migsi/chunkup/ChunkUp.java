@@ -26,7 +26,7 @@ public class ChunkUp extends JavaPlugin {
 	public static ChunkUp instance = null;
 
 	// Is verbose active
-	private static boolean verbose = false;
+	private static boolean verbose = true;
 	// Determine loading algorithm
 	private static boolean useAlternativeChunkLoader = true;
 	// MovementListener for continuous marking
@@ -223,7 +223,7 @@ public class ChunkUp extends JavaPlugin {
 		if (args.length >= 2) {
 			switch (args[1].toLowerCase()) {
 			case Commands.MARK:
-				// TODO wo werden ungültige zeichen für description geprüft?
+				// TODO wo werden ungültige zeichen für description geprüft? --> speichern von description in konstruktor
 				if (movementListener.add(new ChunkUpPlayer((Player) sender, convertToString(sender, args, 2), true))) {
 					sender.sendMessage(ChatColor.DARK_PURPLE + "I'm following you now" + ChatColor.RESET);
 				} else {
@@ -344,6 +344,7 @@ public class ChunkUp extends JavaPlugin {
 	 * @param sender
 	 */
 	public void list(CommandSender sender) {
+		ChunkData.showOwners();
 		String list = ChunkDataVector.list();
 		if (list != null) {
 			sender.sendMessage(list);

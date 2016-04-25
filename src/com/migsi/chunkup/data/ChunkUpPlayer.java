@@ -1,10 +1,13 @@
 package com.migsi.chunkup.data;
 
 import java.util.UUID;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+
+import com.migsi.chunkup.ChunkUp;
 
 public class ChunkUpPlayer {
 
@@ -19,8 +22,9 @@ public class ChunkUpPlayer {
 
 	public ChunkUpPlayer(Player player) {
 		this.uuid = player.getUniqueId();
+		ChunkUp.verbose(Level.WARNING, "UUID of this player: " + uuid.toString());
 	}
-	
+
 	public ChunkUpPlayer(Player player, boolean mark) {
 		this.uuid = player.getUniqueId();
 		this.route = ChunkData.getNextRoute();
@@ -40,9 +44,13 @@ public class ChunkUpPlayer {
 	public UUID getUUID() {
 		return uuid;
 	}
-	
+
 	public OfflinePlayer getOfflinePlayer() {
 		return Bukkit.getOfflinePlayer(uuid);
+	}
+
+	public String getName() {
+		return Bukkit.getPlayer(uuid).getName();
 	}
 
 	public String getDescription() {
@@ -82,10 +90,17 @@ public class ChunkUpPlayer {
 		return true;
 	}
 
-	public boolean equals(ChunkUpPlayer player) {
-		return this.uuid.equals(player.getUUID());
+	@Override
+	public boolean equals(Object player) {
+		if (player instanceof ChunkUpPlayer) {
+			ChunkUp.verbose(Level.WARNING, "Compared uuid's");
+			return this.uuid.equals(((ChunkUpPlayer) player).getUUID());
+		} else {
+			ChunkUp.verbose(Level.WARNING, "Not compared uuid's!");
+			return false;
+		}
 	}
-	
+
 	public String toConfString() {
 		return uuid.toString();
 	}

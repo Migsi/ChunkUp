@@ -103,7 +103,8 @@ public class Config {
 				ChunkUp.instance.getLogger().log(Level.SEVERE, "Found invalid key: " + key);
 			} catch (NullPointerException e) {
 				ChunkUp.instance.getLogger().log(Level.SEVERE,
-						"Found invalid key: " + key + "\nThis could also be an internal error.");
+						"Found invalid key: " + key + "\nThis could also be an internal error. Please send the following stacktrace to the developer.");
+				e.printStackTrace();
 			}
 		}
 

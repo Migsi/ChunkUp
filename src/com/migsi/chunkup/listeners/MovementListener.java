@@ -22,11 +22,16 @@ public class MovementListener implements Listener {
 
 	@EventHandler(priority = EventPriority.NORMAL)
 	public void onPlayerMove(PlayerMoveEvent event) {
+		// TODO get this part more efficient with asynchronous task
 		if (!following.isEmpty()) {
 			ChunkUpPlayer cuplayer = new ChunkUpPlayer(event.getPlayer());
-			if (cuplayer != null && !cuplayer.Ignore()) {
-				if (automark(cuplayer)) {
-					cuplayer.incrementChunkCount();
+			int index = following.indexOf(cuplayer);
+			if (index > -1) {
+				cuplayer = following.get(index);
+				if (!cuplayer.Ignore()) {
+					if (automark(cuplayer)) {
+						cuplayer.incrementChunkCount();
+					}
 				}
 			}
 		}
@@ -43,25 +48,28 @@ public class MovementListener implements Listener {
 	}
 
 	public boolean remove(ChunkUpPlayer cuplayer) {
-		if (cuplayer != null) {
-			if (cuplayer.isMarking()) {
-				ChunkUp.message(cuplayer.getChunkCount() + " chunks marked by " + cuplayer.getOfflinePlayer().getName());
-			} else {
-				ChunkUp.message(cuplayer.getChunkCount() + " chunks demarked by " + cuplayer.getOfflinePlayer().getName());
+		int index = following.indexOf(cuplayer);
+		if (index > -1) {
+			cuplayer = following.get(index);
+			if (cuplayer != null) {
+				if (cuplayer.isMarking()) {
+					ChunkUp.message(
+							cuplayer.getChunkCount() + " chunks marked by " + cuplayer.getOfflinePlayer().getName());
+				} else {
+					ChunkUp.message(
+							cuplayer.getChunkCount() + " chunks demarked by " + cuplayer.getOfflinePlayer().getName());
+				}
+				return following.remove(cuplayer);
 			}
-			return following.remove(cuplayer);
 		}
 		return false;
 	}
 
-	/*public ChunkUpPlayer get(Player player) {
-		for (int i = 0; i < following.size(); i++) {
-			if (following.get(i).equals(player)) {
-				return following.get(i);
-			}
-		}
-		return null;
-	}*/
+	/*
+	 * public ChunkUpPlayer get(Player player) { for (int i = 0; i <
+	 * following.size(); i++) { if (following.get(i).equals(player)) { return
+	 * following.get(i); } } return null; }
+	 */
 
 	public boolean contains(ChunkUpPlayer player) {
 		for (int i = 0; i < following.size(); i++) {
@@ -74,7 +82,8 @@ public class MovementListener implements Listener {
 
 	private boolean automark(ChunkUpPlayer player) {
 		if (player.isMarking()) {
-			if (ChunkDataVector.add(new ChunkData(player.getOfflinePlayer().getPlayer(), player.getDescription(), player.getRoute()))) {
+			if (ChunkDataVector.add(
+					new ChunkData(player.getOfflinePlayer().getPlayer(), player.getDescription(), player.getRoute()))) {
 				ChunkData.addToMap(player);
 				return true;
 			}
